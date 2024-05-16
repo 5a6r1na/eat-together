@@ -1,13 +1,19 @@
 <template>
+  <NavBar></NavBar>
   <Hero></Hero>
-  <DemandForm></DemandForm>
+  <Menu></Menu>
   <Calendar></Calendar>
+  <Map></Map>
+  <Footer></Footer>
 </template>
 
 <script setup>
+import NavBar from "./components/NavBar.vue";
 import Hero from "./components/Hero.vue";
+import Menu from "./components/Menu.vue";
 import Calendar from "./components/Calendar.vue";
-import DemandForm from "./components/DemandForm.vue";
+import Map from "./components/Map.vue";
+import Footer from "./components/Footer.vue";
 </script>
 
 <style scoped>
