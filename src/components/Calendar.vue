@@ -1,22 +1,25 @@
 <template>
-  <v-row class="fill-height">
-    <v-col>
-      <v-sheet height="600">
-        <v-calendar
-          ref="calendar"
-          :events="events"
-          color="primary"
-          type="month"
-        ></v-calendar>
-      </v-sheet>
-    </v-col>
-  </v-row>
+  <div class="calendar">
+    <v-row class="fill-height">
+      <v-col>
+        <v-sheet height="900">
+          <v-calendar
+            ref="calendar"
+            :events="events"
+            color="primary"
+            type="month"
+          ></v-calendar>
+        </v-sheet>
+      </v-col>
+    </v-row>
+  </div>
 </template>
 
 <script setup>
 // import { VCalendar } from "vuetify/labs/VCalendar";
 // import { VSheet } from "vuetify/components/VSheet";
 import { useDate } from "vuetify";
+import { db } from "../firebase";
 
 const focus = "";
 const events = [
