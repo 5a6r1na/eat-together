@@ -112,7 +112,7 @@ watch(
 </script>
 
 <style scoped>
-:deep .el-form-item__label {
+:deep(.el-form-item__label) {
   font-size: 16px;
 }
 </style>
