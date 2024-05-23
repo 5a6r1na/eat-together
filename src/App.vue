@@ -2,7 +2,7 @@
   <NavBar></NavBar>
   <Hero></Hero>
   <Menu></Menu>
-  <Calendar></Calendar>
+  <FullCalendar></FullCalendar>
   <Map></Map>
   <Footer></Footer>
 </template>
@@ -14,6 +14,7 @@ import Menu from "./components/Menu.vue";
 import Calendar from "./components/Calendar.vue";
 import Map from "./components/Map.vue";
 import Footer from "./components/Footer.vue";
+import FullCalendar from "./components/FullCalendar.vue";
 </script>
 
 <style scoped>
