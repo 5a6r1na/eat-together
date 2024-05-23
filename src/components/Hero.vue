@@ -1,5 +1,5 @@
 <template>
-  <div class="hero-container bg-orange-50">
+  <div class="hero-container bg-orange-100">
     <div class="flex justify-center items-center px-4 py-8">
       <!-- Left side: Image -->
       <div class="flex-shrink-0">
