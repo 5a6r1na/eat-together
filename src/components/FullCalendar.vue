@@ -198,7 +198,8 @@ const dialogVisible = ref(false);
 const cardVisible = ref(false);
 const cardHovered = ref(false);
 
-const selectedTab = ref("1"); // Default to the first location
+const selectedTab = ref("1");
+fetchEvents();
 
 const disabledDate = (time) => {
   return time.getTime() < Date.now() - 86400000;
