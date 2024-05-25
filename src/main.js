@@ -12,6 +12,8 @@ import ElementPlus from "element-plus";
 import "element-plus/dist/index.css";
 import * as ElementPlusIconsVue from "@element-plus/icons-vue";
 
+import { db } from "./firebase";
+
 const app = createApp(App);
 const vuetify = createVuetify();
 app.use(vuetify);
