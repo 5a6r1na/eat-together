@@ -90,7 +90,7 @@ const props = defineProps({
 });
 const visible = ref(props.visible);
 
-console.log("Visible prop:", visible.value);
+// console.log("Visible prop:", visible.value);
 const form = ref({
   name: "",
   region: "",
