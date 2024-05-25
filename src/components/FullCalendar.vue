@@ -1,0 +1,504 @@
+<template>
+  <div class="demo-app">
+    <!-- <el-button style="width: 200px" type="warning" @click="toggleDialog"
+      >填寫表單</el-button
+    > -->
+    <el-dialog v-model="dialogVisible" width="500">
+      <p style="font-size: 2em">我要捐獻！</p>
+      <div class="formContent">
+        <el-form
+          :model="form"
+          :rules="rules"
+          ref="formRef"
+          :label-position="'left'"
+          style="padding: 15px"
+        >
+          <el-form-item label="姓名" :label-width="formLabelWidth" prop="name">
+            <el-input
+              v-model="form.name"
+              placeholder="請填寫姓名（例: 王小明、Andy-lee）"
+              autocomplete="off"
+            />
+          </el-form-item>
+          <el-form-item
+            label="單位名稱"
+            :label-width="formLabelWidth"
+            prop="org"
+          >
+            <el-input
+              v-model="form.org"
+              placeholder="請填寫單位名稱（例: 個人、街角家）"
+              autocomplete="off"
+            />
+          </el-form-item>
+          <el-form-item
+            label="聯絡電話"
+            :label-width="formLabelWidth"
+            prop="phone"
+          >
+            <el-input
+              v-model="form.phone"
+              placeholder="請填寫手機號碼（例：0912345678）"
+              autocomplete="off"
+            />
+          </el-form-item>
+          <el-form-item label="內容" :label-width="formLabelWidth" prop="item">
+            <el-input
+              v-model="form.item"
+              placeholder="請描述物資內容 （例：素菜便當）"
+              autocomplete="off"
+            />
+          </el-form-item>
+          <el-form-item
+            label="份數"
+            :label-width="formLabelWidth"
+            prop="quantity"
+          >
+            <el-input
+              v-model="form.quantity"
+              placeholder="請填寫提供物資份數（例：10）"
+              autocomplete="off"
+            >
+              <template #append>份</template>
+            </el-input>
+          </el-form-item>
+          <el-form-item label="類型" :label-width="formLabelWidth" prop="type">
+            <el-select v-model="form.type" placeholder="請選擇物資類型">
+              <el-option label="食物" value="food" />
+              <el-option label="保暖" value="clothes" />
+              <el-option label="衛生" value="hygiene" />
+              <el-option label="醫療" value="medical" />
+            </el-select>
+          </el-form-item>
+          <el-form-item
+            label="地點"
+            :label-width="formLabelWidth"
+            prop="location"
+          >
+            <el-select v-model="form.location" placeholder="請選擇發放地點">
+              <el-option label="台中火車站" value="1" />
+              <el-option label="民權地下道" value="2" />
+              <el-option label="光復國小" value="3" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="日期" :label-width="formLabelWidth" prop="date">
+            <el-date-picker
+              v-model="form.date"
+              type="date"
+              placeholder="請選擇日期"
+            />
+          </el-form-item>
+          <el-form-item label="時間" :label-width="formLabelWidth" prop="time">
+            <el-time-select
+              v-model="form.time"
+              style="width: 240px"
+              start="07:00"
+              step="00:15"
+              end="22:30"
+              placeholder="請選擇時間"
+            />
+          </el-form-item>
+        </el-form>
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="closeDialog">取消</el-button>
+          <el-button type="primary" @click="handleSubmit"> 確認 </el-button>
+        </div>
+      </template>
+    </el-dialog>
+    <!-- <div class="demo-app-sidebar">
+      <div class="demo-app-sidebar-section">
+        <h2>當前活動 ({{ currentEvents.length }})</h2>
+        <ul>
+          <li v-for="event in currentEvents" :key="event.id">
+            <div class="custom-event-time">
+              {{ event.startStr.replace("T", " ").slice(0, 16) }}
+            </div>
+            <div class="custom-event-title">{{ event.title }}</div>
+            <div class="custom-event-item">
+              {{ event.extendedProps.item }}
+              {{ event.extendedProps.quantiy }}
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div> -->
+    <div class="demo-app-main">
+      <FullCalendar
+        ref="fullCalendar"
+        class="demo-app-calendar"
+        :options="calendarOptions"
+      >
+        <template v-slot:eventContent="arg">
+          <div
+            class="custom-event"
+            :style="{
+              backgroundColor: arg.event.backgroundColor,
+              color: arg.event.textColor,
+            }"
+          >
+            <div class="custom-event-time">
+              {{ arg.timeText }} - {{ arg.event.extendedProps.item }} ({{
+                arg.event.extendedProps.quantity
+              }}份)
+            </div>
+          </div>
+        </template>
+      </FullCalendar>
+    </div>
+    <el-card
+      v-if="cardVisible"
+      class="box-card"
+      shadow="hover"
+      :style="{
+        top: cardPosition.top + 'px',
+        left: cardPosition.left + 'px',
+        zIndex: 1000,
+        position: 'absolute',
+        width: '250px',
+        textAlign: 'left',
+        backgroundColor: '#FFFFFF',
+        border: '1px solid #FBA421',
+      }"
+      @click.stop
+    >
+      <template #header>
+        <div
+          class="card-header"
+          style="display: flex; justify-content: space-between"
+        >
+          <span>詳細資訊</span>
+          <Delete style="width: 1em; height: 1em; margin-right: 8px" />
+          <el-button link @click="closeCard">X</el-button>
+        </div>
+      </template>
+      <div class="text item">
+        <div class="custom-event-name">姓名：{{ cardData.name }}</div>
+        <div class="custom-event-org">單位：{{ cardData.org }}</div>
+        <div class="custom-event-phone">聯絡電話：{{ cardData.phone }}</div>
+        <div class="custom-event-item">物資內容：{{ cardData.item }}</div>
+        <div class="custom-event-quantity">份數：{{ cardData.quantity }}</div>
+        <div class="custom-event-type">類型：{{ cardData.type }}</div>
+        <div class="custom-event-location">地點：{{ cardData.location }}</div>
+        <div class="custom-event-date">日期：{{ cardData.date }}</div>
+        <div class="custom-event-time">時間：{{ cardData.time }}</div>
+      </div>
+    </el-card>
+  </div>
+</template>
+
+<script setup>
+import { ref, reactive } from "vue";
+import FullCalendar from "@fullcalendar/vue3";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
+import { INITIAL_EVENTS, createEventId } from "../event-utils";
+import { ElMessage, ElMessageBox } from "element-plus";
+
+const currentEvents = ref([]);
+
+const validateNoWhitespace = (rule, value, callback) => {
+  if (/\s/.test(value)) {
+    callback(new Error("輸入不能包含空格"));
+  } else {
+    callback();
+  }
+};
+
+const rules = reactive({
+  name: [{ required: true, message: "請填寫姓名", trigger: "blur" }],
+  org: [{ required: true, message: "請填寫單位名稱", trigger: "blur" }],
+  phone: [{ required: true, message: "請填寫手機號碼", trigger: "blur" }],
+  item: [{ required: true, message: "請描述物資內容", trigger: "blur" }],
+  quantity: [
+    { required: true, message: "請填寫提供物資份數", trigger: "blur" },
+  ],
+  type: [{ required: true, message: "請選擇物資類型", trigger: "change" }],
+  location: [{ required: true, message: "請選擇發放地點", trigger: "change" }],
+  date: [{ required: true, message: "請選擇日期", trigger: "change" }],
+  time: [{ required: true, message: "請選擇時間", trigger: "change" }],
+});
+
+const calendarOptions = reactive({
+  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
+  customButtons: {
+    formButton: {
+      text: "填寫表單",
+      click: function () {
+        toggleDialog();
+      },
+    },
+  },
+  headerToolbar: {
+    left: "prev,next,today",
+    center: "title",
+    right: "formButton dayGridMonth,timeGridWeek,timeGridDay",
+  },
+  buttonText: {
+    today: "今天",
+    month: "月",
+    week: "週",
+    day: "日",
+  },
+  initialView: "dayGridMonth",
+  events: INITIAL_EVENTS,
+  eventTimeFormat: {
+    hour: "numeric",
+    minute: "2-digit",
+    meridiem: false,
+    hour12: false,
+  },
+  timezone: "local",
+  locale: "zh-tw",
+  fixedWeekCount: false,
+  dayMaxEvents: true,
+  editable: true,
+  selectable: true,
+  selectMirror: true,
+  weekends: true,
+  dateClick: handleDateSelect,
+  eventClick: handleEventClick,
+  eventsSet: handleEvents,
+});
+
+const dialogVisible = ref(false);
+const cardVisible = ref(false);
+
+const cardData = reactive({
+  name: "",
+  org: "",
+  phone: "",
+  item: "",
+  quantity: "",
+  type: "",
+  location: "",
+  date: "",
+  time: "",
+});
+
+const cardPosition = reactive({
+  top: 0,
+  left: 0,
+});
+
+const formLabelWidth = "140px";
+const formRef = ref(null);
+const form = ref({
+  name: "",
+  org: "",
+  phone: "",
+  item: "",
+  quantity: "",
+  type: "",
+  location: "",
+  date: "",
+  time: "",
+});
+
+const fullCalendar = ref(null);
+
+function toggleDialog() {
+  dialogVisible.value = !dialogVisible.value;
+}
+
+function toggleCard() {
+  cardVisible.value = !cardVisible.value;
+}
+
+const closeDialog = () => {
+  dialogVisible.value = false;
+  resetForm();
+};
+
+const closeCard = () => {
+  cardVisible.value = false;
+};
+
+const handleSubmit = () => {
+  formRef.value.validate((valid) => {
+    if (valid) {
+      const formContent = form.value;
+      console.log("Form submitted:", formContent);
+      console.log("formdata", formContent.date);
+      const formatDate = formContent.date.toISOString().replace(/T.*$/, "");
+      const startTime = `${formatDate}T${formContent.time}`;
+      console.log(startTime);
+
+      // Create new event in FullCalendar
+      const calendarApi = fullCalendar.value.getApi();
+      calendarApi.addEvent({
+        id: createEventId(),
+        title: formContent.org,
+        start: startTime,
+        extendedProps: {
+          name: formContent.name,
+          org: formContent.org,
+          phone: formContent.phone,
+          item: formContent.item,
+          quantity: formContent.quantity,
+          type: formContent.type,
+          location: formContent.location,
+        },
+      });
+      resetForm();
+
+      dialogVisible.value = false; // Close the dialog
+    } else {
+      console.log("Form validation failed");
+    }
+  });
+};
+
+function resetForm() {
+  form.value = {
+    name: "",
+    org: "",
+    phone: "",
+    item: "",
+    quantity: "",
+    type: "",
+    location: "",
+    date: "",
+    time: "",
+  };
+}
+
+// creating a new event
+// click on date
+function handleDateSelect(selectInfo) {
+  // let title = prompt("Please enter a new title for your event");
+  let calendarApi = selectInfo.view.calendar;
+
+  // console.log("selectInfo", selectInfo);
+
+  calendarApi.unselect(); // clear date selection
+
+  // if (title) {
+  //   calendarApi.addEvent({
+  //     id: createEventId(),
+  //     title,
+  //     start: selectInfo.dateStr,
+  //   });
+  // }
+}
+
+// click on event
+function handleEventClick(clickInfo) {
+  console.log("event", clickInfo.event);
+
+  const rect = clickInfo.el.getBoundingClientRect();
+  cardPosition.top = rect.top + window.scrollY;
+  cardPosition.left = rect.left + window.scrollX + 180;
+
+  cardData.name = clickInfo.event.extendedProps.name;
+  cardData.org = clickInfo.event.extendedProps.org;
+  cardData.phone = clickInfo.event.extendedProps.phone;
+  cardData.item = clickInfo.event.extendedProps.item;
+  cardData.quantity = clickInfo.event.extendedProps.quantity;
+  cardData.type = clickInfo.event.extendedProps.type;
+  cardData.location = clickInfo.event.extendedProps.location;
+  cardData.date = clickInfo.event.startStr.split("T")[0];
+  cardData.time = clickInfo.event.startStr.split("T")[1].slice(0, 5);
+  cardVisible.value = true;
+  event.preventDefault();
+}
+
+// remove event
+function removeEventClick(clickInfo) {
+  console.log("event", clickInfo.event);
+  console.log(clickInfo.event.extendedProps.phone);
+  ElMessageBox.prompt("請輸入聯絡電話", "刪除提示", {
+    confirmButtonText: "確認",
+    cancelButtonText: "取消",
+    inputPattern: /^[0-9]{10}$/,
+    inputErrorMessage: "聯絡電話格式錯誤",
+  })
+    .then(({ value }) => {
+      if (value === clickInfo.event.extendedProps.phone) {
+        ElMessage({
+          type: "success",
+          message: `電話號碼正確，活動已刪除`,
+        });
+        clickInfo.event.remove();
+      } else {
+        ElMessage({
+          type: "error",
+          message: "電話號碼不正確",
+        });
+      }
+    })
+    .catch(() => {
+      ElMessage({
+        type: "info",
+        message: "取消刪除",
+      });
+    });
+}
+
+function handleEvents(events) {
+  currentEvents.value = events;
+}
+</script>
+
+<style scoped>
+.demo-app {
+  display: flex;
+}
+
+.demo-app-sidebar {
+  width: 230px;
+  padding: 10px;
+}
+
+.demo-app-sidebar-section {
+  margin-bottom: 20px;
+  width: 230px;
+  text-align: left;
+}
+
+.demo-app-main {
+  flex-grow: 1;
+  padding: 10px;
+}
+
+.demo-app-calendar {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.box-card {
+  width: 250px;
+  text-align: left;
+  background-color: #fff; /* Explicitly set background color */
+}
+
+.custom-event {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 4px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 200px;
+}
+
+.custom-event-time {
+  font-weight: bold;
+}
+
+.custom-event-title {
+  font-size: 14px;
+}
+
+.custom-event-description {
+  font-size: 12px;
+  color: #666;
+}
+
+:deep(.el-form-item__label) {
+  font-size: 16px;
+}
+</style>
