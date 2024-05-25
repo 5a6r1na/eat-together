@@ -86,6 +86,7 @@
               v-model="form.date"
               type="date"
               placeholder="請選擇日期"
+              :disabled-date="disabledDate"
             />
           </el-form-item>
           <el-form-item label="時間" :label-width="formLabelWidth" prop="time">
@@ -181,6 +182,10 @@ const dialogVisible = ref(false);
 const cardVisible = ref(false);
 const cardHovered = ref(false);
 
+const disabledDate = (time) => {
+  return time.getTime() < Date.now() - 86400000;
+};
+
 const cardData = reactive({
   name: "",
   org: "",
@@ -225,7 +230,7 @@ const calendarOptions = reactive({
     left: "prev,next,today",
     center: "title",
     // right: "formButton dayGridMonth,timeGridWeek,timeGridDay",
-    right: "formButton dayGridMonth",
+    right: "formButton",
   },
   buttonText: {
     today: "今天",
@@ -243,8 +248,8 @@ const calendarOptions = reactive({
   },
   locale: "zh-tw",
   fixedWeekCount: false,
-  dayMaxEvents: true,
-  editable: true,
+  dayMaxEvents: false,
+  editable: false,
   selectable: true,
   selectMirror: true,
   weekends: true,
@@ -299,7 +304,7 @@ function handleEventClick(clickInfo) {
     position: "absolute",
     top: `${cardPosition.top}px`,
     left: `${cardPosition.left}px`,
-    zIndex: 1000,
+    zIndex: 10000,
     backgroundColor: "#ffffff",
     border: `1px solid ${clickInfo.event.backgroundColor}`,
   };
@@ -329,7 +334,7 @@ function eventMouseEnter(clickInfo) {
     position: "absolute",
     top: `${cardPosition.top}px`,
     left: `${cardPosition.left}px`,
-    zIndex: 1000,
+    zIndex: 10000,
     backgroundColor: "#ffffff",
     border: `1px solid ${clickInfo.event.backgroundColor}`,
   };
@@ -466,6 +471,7 @@ onBeforeUnmount(() => {
 .demo-app-main {
   flex-grow: 1;
   padding: 10px;
+  height: 1000px;
 }
 
 .demo-app-calendar {
@@ -488,7 +494,7 @@ onBeforeUnmount(() => {
   border: 1px solid #ccc;
   border-radius: 4px;
   width: 200px;
-  text-wrap: wrap;
+  word-wrap: break-word;
 }
 
 .custom-event-time {
@@ -502,6 +508,15 @@ onBeforeUnmount(() => {
 .custom-event-description {
   font-size: 12px;
   color: #666;
+}
+
+:deep(.el-picker-panel__body) {
+  width: max-content;
+}
+
+:deep(.el-date-picker__header) {
+  display: flex;
+  align-items: center;
 }
 
 :deep(.el-form-item__label) {
