@@ -1,4 +1,13 @@
 <template>
+  <el-tabs
+    v-model="selectedTab"
+    @tab-click="handleTabClick"
+    class="custom-tabs"
+  >
+    <el-tab-pane label="台中火車站" name="1"></el-tab-pane>
+    <el-tab-pane label="民權地下道" name="2"></el-tab-pane>
+    <el-tab-pane label="光復國小" name="3"></el-tab-pane>
+  </el-tabs>
   <div class="demo-app">
     <!-- <el-button style="width: 200px" type="warning" @click="toggleDialog"
       >填寫表單</el-button
@@ -188,6 +197,8 @@ const formLabelWidth = "140px";
 const dialogVisible = ref(false);
 const cardVisible = ref(false);
 const cardHovered = ref(false);
+
+const selectedTab = ref("1"); // Default to the first location
 
 const disabledDate = (time) => {
   return time.getTime() < Date.now() - 86400000;
@@ -478,28 +489,35 @@ function fetchEvents() {
     const events = [];
     snapshot.forEach((doc) => {
       const data = doc.data();
-      events.push({
-        id: doc.id,
-        start: data.start,
-        backgroundColor: data.backgroundColor,
-        extendedProps: {
-          name: data.name,
-          org: data.org,
-          phone: data.phone,
-          item: data.item,
-          quantity: data.quantity,
-          type: data.type,
-          location: data.location,
-        },
-      });
+      if (data.location === selectedTab.value) {
+        events.push({
+          id: doc.id,
+          start: data.start,
+          backgroundColor: data.backgroundColor,
+          extendedProps: {
+            name: data.name,
+            org: data.org,
+            phone: data.phone,
+            item: data.item,
+            quantity: data.quantity,
+            type: data.type,
+            location: data.location,
+          },
+        });
+      }
     });
     calendarOptions.events = events;
+    console.log("fetch");
   });
+}
+
+function handleTabClick(tab) {
+  fetchEvents();
 }
 
 onMounted(() => {
   document.addEventListener("click", handleClickOutside);
-  fetchEvents();
+  // fetchEvents();
 });
 
 onBeforeUnmount(() => {
@@ -577,5 +595,25 @@ onBeforeUnmount(() => {
 
 :deep(.el-form-item__label) {
   font-size: 16px;
+}
+
+:deep(.el-tabs__item.is-active) {
+  color: #fca421;
+}
+
+:deep(.el-tabs__active-bar) {
+  background-color: #fca421;
+}
+
+:deep(.el-tabs__item) {
+  font-size: 16px;
+}
+
+:deep(.el-tabs__item:hover) {
+  color: #fca421;
+}
+
+:deep(.el-tabs__nav-scroll) {
+  padding: 10px;
 }
 </style>
