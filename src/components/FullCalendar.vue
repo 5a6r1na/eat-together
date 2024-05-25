@@ -107,23 +107,6 @@
         </div>
       </template>
     </el-dialog>
-    <!-- <div class="demo-app-sidebar">
-      <div class="demo-app-sidebar-section">
-        <h2>當前活動 ({{ currentEvents.length }})</h2>
-        <ul>
-          <li v-for="event in currentEvents" :key="event.id">
-            <div class="custom-event-time">
-              {{ event.startStr.replace("T", " ").slice(0, 16) }}
-            </div>
-            <div class="custom-event-title">{{ event.title }}</div>
-            <div class="custom-event-item">
-              {{ event.extendedProps.item }}
-              {{ event.extendedProps.quantiy }}
-            </div>
-          </li>
-        </ul>
-      </div>
-    </div> -->
     <div class="demo-app-main">
       <FullCalendar
         ref="fullCalendar"
@@ -151,16 +134,7 @@
       v-if="cardVisible"
       class="box-card"
       shadow="hover"
-      :style="{
-        top: cardPosition.top + 'px',
-        left: cardPosition.left + 'px',
-        zIndex: 1000,
-        position: 'absolute',
-        width: '250px',
-        textAlign: 'left',
-        backgroundColor: '#FFFFFF',
-        border: '1px solid #FBA421',
-      }"
+      :style="cardStyle"
       @click.stop
     >
       <template #header>
@@ -169,17 +143,17 @@
           style="display: flex; justify-content: space-between"
         >
           <span>詳細資訊</span>
-          <Delete style="width: 1em; height: 1em; margin-right: 8px" />
-          <el-button link @click="closeCard">X</el-button>
+          <el-button @click="removeEventClick">
+            <el-icon style="vertical-align: middle; width: 2em">
+              <Delete /> </el-icon
+          ></el-button>
         </div>
       </template>
       <div class="text item">
         <div class="custom-event-name">姓名：{{ cardData.name }}</div>
         <div class="custom-event-org">單位：{{ cardData.org }}</div>
-        <div class="custom-event-phone">聯絡電話：{{ cardData.phone }}</div>
         <div class="custom-event-item">物資內容：{{ cardData.item }}</div>
         <div class="custom-event-quantity">份數：{{ cardData.quantity }}</div>
-        <div class="custom-event-type">類型：{{ cardData.type }}</div>
         <div class="custom-event-location">地點：{{ cardData.location }}</div>
         <div class="custom-event-date">日期：{{ cardData.date }}</div>
         <div class="custom-event-time">時間：{{ cardData.time }}</div>
@@ -189,82 +163,23 @@
 </template>
 
 <script setup>
-import { ref, reactive } from "vue";
+import { ref, reactive, onMounted, onBeforeUnmount } from "vue";
 import FullCalendar from "@fullcalendar/vue3";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { INITIAL_EVENTS, createEventId } from "../event-utils";
 import { ElMessage, ElMessageBox } from "element-plus";
+import { Delete } from "@element-plus/icons-vue";
+import { INITIAL_EVENTS, createEventId } from "../event-utils";
 
+const fullCalendar = ref(null);
 const currentEvents = ref([]);
-
-const validateNoWhitespace = (rule, value, callback) => {
-  if (/\s/.test(value)) {
-    callback(new Error("輸入不能包含空格"));
-  } else {
-    callback();
-  }
-};
-
-const rules = reactive({
-  name: [{ required: true, message: "請填寫姓名", trigger: "blur" }],
-  org: [{ required: true, message: "請填寫單位名稱", trigger: "blur" }],
-  phone: [{ required: true, message: "請填寫手機號碼", trigger: "blur" }],
-  item: [{ required: true, message: "請描述物資內容", trigger: "blur" }],
-  quantity: [
-    { required: true, message: "請填寫提供物資份數", trigger: "blur" },
-  ],
-  type: [{ required: true, message: "請選擇物資類型", trigger: "change" }],
-  location: [{ required: true, message: "請選擇發放地點", trigger: "change" }],
-  date: [{ required: true, message: "請選擇日期", trigger: "change" }],
-  time: [{ required: true, message: "請選擇時間", trigger: "change" }],
-});
-
-const calendarOptions = reactive({
-  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
-  customButtons: {
-    formButton: {
-      text: "填寫表單",
-      click: function () {
-        toggleDialog();
-      },
-    },
-  },
-  headerToolbar: {
-    left: "prev,next,today",
-    center: "title",
-    right: "formButton dayGridMonth,timeGridWeek,timeGridDay",
-  },
-  buttonText: {
-    today: "今天",
-    month: "月",
-    week: "週",
-    day: "日",
-  },
-  initialView: "dayGridMonth",
-  events: INITIAL_EVENTS,
-  eventTimeFormat: {
-    hour: "numeric",
-    minute: "2-digit",
-    meridiem: false,
-    hour12: false,
-  },
-  timezone: "local",
-  locale: "zh-tw",
-  fixedWeekCount: false,
-  dayMaxEvents: true,
-  editable: true,
-  selectable: true,
-  selectMirror: true,
-  weekends: true,
-  dateClick: handleDateSelect,
-  eventClick: handleEventClick,
-  eventsSet: handleEvents,
-});
-
+const currentEvent = ref(null);
+const cardStyle = ref({});
+const formLabelWidth = "140px";
 const dialogVisible = ref(false);
 const cardVisible = ref(false);
+const cardHovered = ref(false);
 
 const cardData = reactive({
   name: "",
@@ -283,7 +198,6 @@ const cardPosition = reactive({
   left: 0,
 });
 
-const formLabelWidth = "140px";
 const formRef = ref(null);
 const form = ref({
   name: "",
@@ -297,24 +211,171 @@ const form = ref({
   time: "",
 });
 
-const fullCalendar = ref(null);
+const calendarOptions = reactive({
+  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
+  customButtons: {
+    formButton: {
+      text: "填寫表單",
+      click: function () {
+        toggleDialog();
+      },
+    },
+  },
+  headerToolbar: {
+    left: "prev,next,today",
+    center: "title",
+    // right: "formButton dayGridMonth,timeGridWeek,timeGridDay",
+    right: "formButton dayGridMonth",
+  },
+  buttonText: {
+    today: "今天",
+    month: "月",
+    week: "週",
+    day: "日",
+  },
+  initialView: "dayGridMonth",
+  events: INITIAL_EVENTS,
+  eventTimeFormat: {
+    hour: "numeric",
+    minute: "2-digit",
+    meridiem: false,
+    hour12: false,
+  },
+  locale: "zh-tw",
+  fixedWeekCount: false,
+  dayMaxEvents: true,
+  editable: true,
+  selectable: true,
+  selectMirror: true,
+  weekends: true,
+  dateClick: handleDateSelect,
+  eventClick: handleEventClick,
+  eventMouseEnter: eventMouseEnter,
+  eventMouseLeave: eventMouseLeave,
+  eventsSet: handleEvents,
+});
+
+const rules = reactive({
+  name: [{ required: true, message: "請填寫姓名", trigger: "blur" }],
+  org: [{ required: true, message: "請填寫單位名稱", trigger: "blur" }],
+  phone: [{ required: true, message: "請填寫手機號碼", trigger: "blur" }],
+  item: [{ required: true, message: "請描述物資內容", trigger: "blur" }],
+  quantity: [
+    { required: true, message: "請填寫提供物資份數", trigger: "blur" },
+  ],
+  type: [{ required: true, message: "請選擇物資類型", trigger: "change" }],
+  location: [{ required: true, message: "請選擇發放地點", trigger: "change" }],
+  date: [{ required: true, message: "請選擇日期", trigger: "change" }],
+  time: [{ required: true, message: "請選擇時間", trigger: "change" }],
+});
 
 function toggleDialog() {
   dialogVisible.value = !dialogVisible.value;
 }
 
-function toggleCard() {
-  cardVisible.value = !cardVisible.value;
-}
-
-const closeDialog = () => {
+function closeDialog() {
   dialogVisible.value = false;
   resetForm();
-};
+}
 
-const closeCard = () => {
+function closeCard() {
   cardVisible.value = false;
-};
+}
+
+function handleDateSelect(selectInfo) {
+  let calendarApi = selectInfo.view.calendar;
+  calendarApi.unselect(); // clear date selection
+}
+
+function handleEventClick(clickInfo) {
+  cardVisible.value = true;
+  currentEvents.value = clickInfo;
+
+  const rect = clickInfo.el.getBoundingClientRect();
+  cardPosition.top = rect.top + window.scrollY;
+  cardPosition.left = rect.left + window.scrollX + 180;
+
+  cardStyle.value = {
+    position: "absolute",
+    top: `${cardPosition.top}px`,
+    left: `${cardPosition.left}px`,
+    zIndex: 1000,
+    backgroundColor: "#ffffff",
+    border: `1px solid ${clickInfo.event.backgroundColor}`,
+  };
+
+  cardData.name = clickInfo.event.extendedProps.name;
+  cardData.org = clickInfo.event.extendedProps.org;
+  cardData.phone = clickInfo.event.extendedProps.phone;
+  cardData.item = clickInfo.event.extendedProps.item;
+  cardData.quantity = clickInfo.event.extendedProps.quantity;
+  cardData.type = clickInfo.event.extendedProps.type;
+  cardData.location = clickInfo.event.extendedProps.location;
+  cardData.date = clickInfo.event.startStr.split("T")[0];
+  cardData.time = clickInfo.event.startStr.split("T")[1].slice(0, 5);
+
+  clickInfo.jsEvent.stopPropagation();
+}
+
+function eventMouseEnter(clickInfo) {
+  cardVisible.value = true;
+  currentEvents.value = clickInfo;
+
+  const rect = clickInfo.el.getBoundingClientRect();
+  cardPosition.top = rect.top + window.scrollY;
+  cardPosition.left = rect.left + window.scrollX + 180;
+
+  cardStyle.value = {
+    position: "absolute",
+    top: `${cardPosition.top}px`,
+    left: `${cardPosition.left}px`,
+    zIndex: 1000,
+    backgroundColor: "#ffffff",
+    border: `1px solid ${clickInfo.event.backgroundColor}`,
+  };
+
+  cardData.name = clickInfo.event.extendedProps.name;
+  cardData.org = clickInfo.event.extendedProps.org;
+  cardData.phone = clickInfo.event.extendedProps.phone;
+  cardData.item = clickInfo.event.extendedProps.item;
+  cardData.quantity = clickInfo.event.extendedProps.quantity;
+  cardData.type = clickInfo.event.extendedProps.type;
+  cardData.location = clickInfo.event.extendedProps.location;
+  cardData.date = clickInfo.event.startStr.split("T")[0];
+  cardData.time = clickInfo.event.startStr.split("T")[1].slice(0, 5);
+}
+
+function eventMouseLeave() {
+  cardVisible.value = true;
+}
+
+function removeEventClick() {
+  const selectedEvent = currentEvents.value.event;
+  ElMessageBox.prompt("請輸入聯絡電話", "刪除提示", {
+    confirmButtonText: "確認",
+    cancelButtonText: "取消",
+    inputPattern: /^[0-9]{10}$/,
+    inputErrorMessage: "聯絡電話格式錯誤",
+  })
+    .then(({ value }) => {
+      if (value === selectedEvent.extendedProps.phone) {
+        ElMessage({
+          type: "success",
+          message: `電話號碼正確，活動已刪除`,
+        });
+        selectedEvent.remove();
+        cardVisible.value = false;
+      } else {
+        ElMessage({
+          type: "error",
+          message: "電話號碼不正確",
+        });
+      }
+    })
+    .catch(() => {
+      // Handle cancel action
+    });
+}
 
 const handleSubmit = () => {
   formRef.value.validate((valid) => {
@@ -332,6 +393,8 @@ const handleSubmit = () => {
         id: createEventId(),
         title: formContent.org,
         start: startTime,
+        backgroundColor: "#3ac976",
+        textColor: "#ffffff",
         extendedProps: {
           name: formContent.name,
           org: formContent.org,
@@ -365,81 +428,23 @@ function resetForm() {
   };
 }
 
-// creating a new event
-// click on date
-function handleDateSelect(selectInfo) {
-  // let title = prompt("Please enter a new title for your event");
-  let calendarApi = selectInfo.view.calendar;
-
-  // console.log("selectInfo", selectInfo);
-
-  calendarApi.unselect(); // clear date selection
-
-  // if (title) {
-  //   calendarApi.addEvent({
-  //     id: createEventId(),
-  //     title,
-  //     start: selectInfo.dateStr,
-  //   });
-  // }
-}
-
-// click on event
-function handleEventClick(clickInfo) {
-  console.log("event", clickInfo.event);
-
-  const rect = clickInfo.el.getBoundingClientRect();
-  cardPosition.top = rect.top + window.scrollY;
-  cardPosition.left = rect.left + window.scrollX + 180;
-
-  cardData.name = clickInfo.event.extendedProps.name;
-  cardData.org = clickInfo.event.extendedProps.org;
-  cardData.phone = clickInfo.event.extendedProps.phone;
-  cardData.item = clickInfo.event.extendedProps.item;
-  cardData.quantity = clickInfo.event.extendedProps.quantity;
-  cardData.type = clickInfo.event.extendedProps.type;
-  cardData.location = clickInfo.event.extendedProps.location;
-  cardData.date = clickInfo.event.startStr.split("T")[0];
-  cardData.time = clickInfo.event.startStr.split("T")[1].slice(0, 5);
-  cardVisible.value = true;
-  event.preventDefault();
-}
-
-// remove event
-function removeEventClick(clickInfo) {
-  console.log("event", clickInfo.event);
-  console.log(clickInfo.event.extendedProps.phone);
-  ElMessageBox.prompt("請輸入聯絡電話", "刪除提示", {
-    confirmButtonText: "確認",
-    cancelButtonText: "取消",
-    inputPattern: /^[0-9]{10}$/,
-    inputErrorMessage: "聯絡電話格式錯誤",
-  })
-    .then(({ value }) => {
-      if (value === clickInfo.event.extendedProps.phone) {
-        ElMessage({
-          type: "success",
-          message: `電話號碼正確，活動已刪除`,
-        });
-        clickInfo.event.remove();
-      } else {
-        ElMessage({
-          type: "error",
-          message: "電話號碼不正確",
-        });
-      }
-    })
-    .catch(() => {
-      ElMessage({
-        type: "info",
-        message: "取消刪除",
-      });
-    });
-}
-
 function handleEvents(events) {
   currentEvents.value = events;
 }
+
+function handleClickOutside(event) {
+  if (!event.target.closest(".box-card")) {
+    closeCard();
+  }
+}
+
+onMounted(() => {
+  document.addEventListener("click", handleClickOutside);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener("click", handleClickOutside);
+});
 </script>
 
 <style scoped>
@@ -483,6 +488,7 @@ function handleEvents(events) {
   border: 1px solid #ccc;
   border-radius: 4px;
   width: 200px;
+  text-wrap: wrap;
 }
 
 .custom-event-time {
