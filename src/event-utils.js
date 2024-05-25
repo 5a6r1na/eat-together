@@ -4,10 +4,8 @@ let todayStr = new Date().toISOString().replace(/T.*$/, ""); // YYYY-MM-DD of to
 export const INITIAL_EVENTS = [
   {
     id: createEventId(),
-    title: "",
     start: todayStr + "T17:30:00",
     backgroundColor: "#fca421",
-    textColor: "#ffffff",
     extendedProps: {
       name: "李先生",
       org: "個人",
@@ -20,10 +18,8 @@ export const INITIAL_EVENTS = [
   },
   {
     id: createEventId(),
-    title: "",
     start: todayStr + "T14:00:00",
     backgroundColor: "#3ac976",
-    textColor: "#ffffff",
     extendedProps: {
       name: "林先生",
       org: "街角家",
@@ -36,10 +32,8 @@ export const INITIAL_EVENTS = [
   },
   {
     id: createEventId(),
-    title: "",
     start: "2024-05-17T17:30:00",
     backgroundColor: "#498ae6",
-    textColor: "#ffffff",
     extendedProps: {
       name: "林先生",
       org: "街角家",

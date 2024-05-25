@@ -1,7 +1,7 @@
 <template>
   <NavBar></NavBar>
   <Hero></Hero>
-  <Menu></Menu>
+  <!-- <Menu></Menu> -->
   <FullCalendar></FullCalendar>
   <Map></Map>
   <Footer></Footer>
@@ -11,7 +11,6 @@
 import NavBar from "./components/NavBar.vue";
 import Hero from "./components/Hero.vue";
 import Menu from "./components/Menu.vue";
-import Calendar from "./components/Calendar.vue";
 import Map from "./components/Map.vue";
 import Footer from "./components/Footer.vue";
 import FullCalendar from "./components/FullCalendar.vue";
