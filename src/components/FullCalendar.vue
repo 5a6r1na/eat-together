@@ -172,7 +172,13 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import { Delete } from "@element-plus/icons-vue";
 import { INITIAL_EVENTS, createEventId } from "../event-utils";
 import { db } from "../firebase";
-import { collection, onSnapshot } from "firebase/firestore";
+import {
+  collection,
+  onSnapshot,
+  addDoc,
+  doc,
+  deleteDoc,
+} from "firebase/firestore";
 
 const fullCalendar = ref(null);
 const currentEvents = ref([]);
@@ -371,7 +377,8 @@ function removeEventClick() {
           type: "success",
           message: `電話號碼正確，活動已刪除`,
         });
-        selectedEvent.remove();
+        // selectedEvent.remove();
+        deleteDoc(doc(db, "calEvent", selectedEvent.id));
         cardVisible.value = false;
       } else {
         ElMessage({
@@ -404,22 +411,34 @@ const handleSubmit = () => {
       const backgroundColor = typeColorMap[formContent.type];
 
       // Create new event in FullCalendar
-      const calendarApi = fullCalendar.value.getApi();
-      calendarApi.addEvent({
-        id: createEventId(),
-        title: formContent.org,
+      // const calendarApi = fullCalendar.value.getApi();
+      // calendarApi.addEvent({
+      //   id: createEventId(),
+      //   start: startTime,
+      //   backgroundColor: backgroundColor,
+      //   extendedProps: {
+      //     name: formContent.name,
+      //     org: formContent.org,
+      //     phone: formContent.phone,
+      //     item: formContent.item,
+      //     quantity: formContent.quantity,
+      //     type: formContent.type,
+      //     location: formContent.location,
+      //   },
+      // });
+
+      const docRef = addDoc(collection(db, "calEvent"), {
         start: startTime,
         backgroundColor: backgroundColor,
-        extendedProps: {
-          name: formContent.name,
-          org: formContent.org,
-          phone: formContent.phone,
-          item: formContent.item,
-          quantity: formContent.quantity,
-          type: formContent.type,
-          location: formContent.location,
-        },
+        name: formContent.name,
+        org: formContent.org,
+        phone: formContent.phone,
+        item: formContent.item,
+        quantity: formContent.quantity,
+        type: formContent.type,
+        location: formContent.location,
       });
+      console.log("Document written with ID: ", docRef.id);
       resetForm();
 
       dialogVisible.value = false;
