@@ -119,7 +119,6 @@
             class="custom-event"
             :style="{
               backgroundColor: arg.event.backgroundColor,
-              color: arg.event.textColor,
             }"
           >
             <div class="custom-event-time">
@@ -172,6 +171,8 @@ import interactionPlugin from "@fullcalendar/interaction";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Delete } from "@element-plus/icons-vue";
 import { INITIAL_EVENTS, createEventId } from "../event-utils";
+import { db } from "../firebase";
+import { collection, onSnapshot } from "firebase/firestore";
 
 const fullCalendar = ref(null);
 const currentEvents = ref([]);
@@ -239,7 +240,9 @@ const calendarOptions = reactive({
     day: "日",
   },
   initialView: "dayGridMonth",
-  events: INITIAL_EVENTS,
+  events: [],
+
+  // events: INITIAL_EVENTS,
   eventTimeFormat: {
     hour: "numeric",
     minute: "2-digit",
@@ -257,7 +260,7 @@ const calendarOptions = reactive({
   eventClick: handleEventClick,
   eventMouseEnter: eventMouseEnter,
   eventMouseLeave: eventMouseLeave,
-  eventsSet: handleEvents,
+  // eventsSet: handleEvents,
 });
 
 const rules = reactive({
@@ -386,11 +389,19 @@ const handleSubmit = () => {
   formRef.value.validate((valid) => {
     if (valid) {
       const formContent = form.value;
-      console.log("Form submitted:", formContent);
-      console.log("formdata", formContent.date);
       const formatDate = formContent.date.toISOString().replace(/T.*$/, "");
       const startTime = `${formatDate}T${formContent.time}`;
-      console.log(startTime);
+
+      // Define the mapping between types and colors
+      const typeColorMap = {
+        food: "#fca421",
+        clothes: "#67C23A",
+        hygiene: "#409EFF",
+        medical: "#fc8686",
+      };
+
+      // Get the color based on the type
+      const backgroundColor = typeColorMap[formContent.type];
 
       // Create new event in FullCalendar
       const calendarApi = fullCalendar.value.getApi();
@@ -398,8 +409,7 @@ const handleSubmit = () => {
         id: createEventId(),
         title: formContent.org,
         start: startTime,
-        backgroundColor: "#3ac976",
-        textColor: "#ffffff",
+        backgroundColor: backgroundColor,
         extendedProps: {
           name: formContent.name,
           org: formContent.org,
@@ -412,7 +422,7 @@ const handleSubmit = () => {
       });
       resetForm();
 
-      dialogVisible.value = false; // Close the dialog
+      dialogVisible.value = false;
     } else {
       console.log("Form validation failed");
     }
@@ -443,8 +453,34 @@ function handleClickOutside(event) {
   }
 }
 
+function fetchEvents() {
+  const eventsCol = collection(db, "calEvent");
+  onSnapshot(eventsCol, (snapshot) => {
+    const events = [];
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      events.push({
+        id: doc.id,
+        start: data.start,
+        backgroundColor: data.backgroundColor,
+        extendedProps: {
+          name: data.name,
+          org: data.org,
+          phone: data.phone,
+          item: data.item,
+          quantity: data.quantity,
+          type: data.type,
+          location: data.location,
+        },
+      });
+    });
+    calendarOptions.events = events;
+  });
+}
+
 onMounted(() => {
   document.addEventListener("click", handleClickOutside);
+  fetchEvents();
 });
 
 onBeforeUnmount(() => {
@@ -494,7 +530,8 @@ onBeforeUnmount(() => {
   border: 1px solid #ccc;
   border-radius: 4px;
   width: 200px;
-  word-wrap: break-word;
+  text-wrap: wrap;
+  color: #fff;
 }
 
 .custom-event-time {
