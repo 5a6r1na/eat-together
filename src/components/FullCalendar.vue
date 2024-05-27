@@ -332,7 +332,7 @@ function handleEventClick(clickInfo) {
 
   if (screenWidth < 900) {
     cardStyle.value = {
-      position: "fixed",
+      position: "absolute",
       top: `${cardPosition.top}px`,
       left: "50%",
       transform: "translate(-50%, -50%)",
