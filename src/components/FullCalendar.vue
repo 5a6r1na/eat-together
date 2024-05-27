@@ -12,8 +12,8 @@
     <!-- <el-button style="width: 200px" type="warning" @click="toggleDialog"
       >填寫表單</el-button
     > -->
-    <el-dialog v-model="dialogVisible" width="500">
-      <p style="font-size: 2em">我要捐獻！</p>
+    <el-dialog v-model="dialogVisible" width="500px">
+      <p style="font-size: 2em">發放表單</p>
       <div class="formContent">
         <el-form
           :model="form"
@@ -21,6 +21,7 @@
           ref="formRef"
           :label-position="'left'"
           style="padding: 15px"
+          class="donation-form"
         >
           <el-form-item label="姓名" :label-width="formLabelWidth" prop="name">
             <el-input
@@ -125,10 +126,9 @@
       >
         <template v-slot:eventContent="arg">
           <div
+            v-if="shouldRenderContent"
             class="custom-event"
-            :style="{
-              backgroundColor: arg.event.backgroundColor,
-            }"
+            :style="{ backgroundColor: arg.event.backgroundColor }"
           >
             <div class="custom-event-time">
               {{ arg.timeText }} - {{ arg.event.extendedProps.item }} ({{
@@ -136,6 +136,11 @@
               }}份)
             </div>
           </div>
+          <div
+            v-else
+            class="custom-dot"
+            :style="{ backgroundColor: arg.event.backgroundColor }"
+          ></div>
         </template>
       </FullCalendar>
     </div>
@@ -172,7 +177,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onBeforeUnmount } from "vue";
+import { ref, reactive, onMounted, onBeforeUnmount, computed } from "vue";
 import FullCalendar from "@fullcalendar/vue3";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -193,12 +198,12 @@ const fullCalendar = ref(null);
 const currentEvents = ref([]);
 const currentEvent = ref(null);
 const cardStyle = ref({});
-const formLabelWidth = "140px";
+const formLabelWidth = "100px";
 const dialogVisible = ref(false);
 const cardVisible = ref(false);
 const cardHovered = ref(false);
-
 const selectedTab = ref("1");
+const screenWidth = ref(window.innerWidth);
 fetchEvents();
 
 const disabledDate = (time) => {
@@ -239,7 +244,7 @@ const calendarOptions = reactive({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
   customButtons: {
     formButton: {
-      text: "填寫表單",
+      text: "登記發放",
       click: function () {
         toggleDialog();
       },
@@ -516,105 +521,147 @@ function handleTabClick(tab) {
   fetchEvents();
 }
 
+const updateScreenWidth = () => {
+  screenWidth.value = window.innerWidth;
+};
+
 onMounted(() => {
   document.addEventListener("click", handleClickOutside);
+  window.addEventListener("resize", updateScreenWidth);
   // fetchEvents();
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener("click", handleClickOutside);
+  window.removeEventListener("resize", updateScreenWidth);
+});
+
+const shouldRenderContent = computed(() => {
+  return screenWidth.value >= 600;
 });
 </script>
 
 <style scoped>
 .demo-app {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
 }
 
-.demo-app-sidebar {
-  width: 230px;
-  padding: 10px;
-}
-
-.demo-app-sidebar-section {
-  margin-bottom: 20px;
-  width: 230px;
-  text-align: left;
-}
-
-.demo-app-main {
-  flex-grow: 1;
-  padding: 10px;
-  height: 1000px;
-}
-
-.demo-app-calendar {
-  max-width: 1200px;
+.custom-tabs {
+  width: 100%;
+  max-width: 600px;
   margin: 0 auto;
 }
 
-.box-card {
-  width: 250px;
-  text-align: left;
-  background-color: #fff; /* Explicitly set background color */
+.demo-app-main {
+  width: 100%;
+  max-width: 1200px;
+  margin: 20px auto;
+}
+
+.demo-app-calendar {
+  width: 100%;
+  max-width: 1200px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.dialog-title {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
 }
 
 .custom-event {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 4px;
-  background-color: #f0f0f0;
-  border: 1px solid #ccc;
+  width: 100%;
+}
+.box-card {
+  position: fixed;
+  z-index: 1000;
+  width: 300px;
+  transition: transform 0.3s ease-in-out;
+}
+
+@media (max-width: 700px) {
+  .box-card {
+    width: 50%;
+    left: 10%;
+  }
+
+  .demo-app-main {
+    padding: 0 10px;
+  }
+
+  .dialog-title {
+    font-size: 18px;
+  }
+
+  .formContent {
+    padding: 10px;
+  }
+
+  .demo-app-calendar {
+    width: 100%;
+    height: 500px;
+  }
+
+  .dialogMaxWidth {
+    max-width: 90%;
+  }
+
+  :deep(.el-dialog) {
+    width: 90%;
+  }
+
+  .custom-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+}
+
+.custom-event {
   border-radius: 4px;
-  width: 200px;
-  text-wrap: wrap;
+  padding: 5px;
   color: #fff;
+  display: flex;
+  justify-content: space-between;
 }
 
 .custom-event-time {
-  font-weight: bold;
+  font-size: 12px;
 }
 
-.custom-event-title {
+.card-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.custom-event-name,
+.custom-event-org,
+.custom-event-item,
+.custom-event-quantity,
+.custom-event-location,
+.custom-event-date,
+.custom-event-time {
+  margin-bottom: 5px;
   font-size: 14px;
 }
 
-.custom-event-description {
-  font-size: 12px;
-  color: #666;
-}
-
-:deep(.el-picker-panel__body) {
-  width: max-content;
-}
-
-:deep(.el-date-picker__header) {
-  display: flex;
-  align-items: center;
-}
-
-:deep(.el-form-item__label) {
-  font-size: 16px;
-}
-
-:deep(.el-tabs__item.is-active) {
-  color: #fca421;
-}
-
-:deep(.el-tabs__active-bar) {
-  background-color: #fca421;
-}
-
-:deep(.el-tabs__item) {
-  font-size: 16px;
-}
-
-:deep(.el-tabs__item:hover) {
-  color: #fca421;
-}
-
-:deep(.el-tabs__nav-scroll) {
-  padding: 10px;
+@media (max-width: 480px) {
+  .custom-event-name,
+  .custom-event-org,
+  .custom-event-item,
+  .custom-event-quantity,
+  .custom-event-location,
+  .custom-event-date,
+  .custom-event-time {
+    font-size: 12px;
+  }
 }
 </style>
