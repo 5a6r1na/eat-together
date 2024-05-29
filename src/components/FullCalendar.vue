@@ -204,7 +204,7 @@ const cardVisible = ref(false);
 const cardHovered = ref(false);
 const selectedTab = ref("1");
 const screenWidth = ref(window.innerWidth);
-// fetchEvents();
+fetchEvents();
 
 const disabledDate = (time) => {
   return time.getTime() < Date.now() - 86400000;
@@ -263,9 +263,8 @@ const calendarOptions = reactive({
     day: "日",
   },
   initialView: "dayGridMonth",
-  // events: [],
-
-  events: INITIAL_EVENTS,
+  events: [],
+  // events: INITIAL_EVENTS,
   eventTimeFormat: {
     hour: "numeric",
     minute: "2-digit",
@@ -349,7 +348,6 @@ function handleEventClick(clickInfo) {
       position: "absolute",
       top: `${cardPosition.top}px`,
       left: `${cardPosition.left}px`,
-      // transform: "translate(-50%, -50%)",
       zIndex: 10000,
       backgroundColor: "#ffffff",
       border: `1px solid ${clickInfo.event.backgroundColor}`,
@@ -381,20 +379,30 @@ function eventMouseEnter(clickInfo) {
   const cardWidth = 200;
   const screenWidth = window.innerWidth;
 
-  // Check if card exceeds screen width
-  if (cardPosition.left + cardWidth > screenWidth) {
-    cardPosition.left = rect.left + window.scrollX - cardWidth;
-    cardPosition.top = rect.bottom + window.scrollY;
+  if (screenWidth < 900) {
+    cardStyle.value = {
+      position: "absolute",
+      top: `${cardPosition.top}px`,
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      zIndex: 10000,
+      backgroundColor: "#ffffff",
+      border: `1px solid ${clickInfo.event.backgroundColor}`,
+    };
+  } else {
+    if (cardPosition.left + cardWidth > screenWidth) {
+      cardPosition.left = rect.left + window.scrollX - cardWidth;
+      cardPosition.top = rect.bottom + window.scrollY;
+    }
+    cardStyle.value = {
+      position: "absolute",
+      top: `${cardPosition.top}px`,
+      left: `${cardPosition.left}px`,
+      zIndex: 10000,
+      backgroundColor: "#ffffff",
+      border: `1px solid ${clickInfo.event.backgroundColor}`,
+    };
   }
-
-  cardStyle.value = {
-    position: "absolute",
-    top: `${cardPosition.top}px`,
-    left: `${cardPosition.left}px`,
-    zIndex: 10000,
-    backgroundColor: "#ffffff",
-    border: `1px solid ${clickInfo.event.backgroundColor}`,
-  };
 
   cardData.name = clickInfo.event.extendedProps.name;
   cardData.org = clickInfo.event.extendedProps.org;
