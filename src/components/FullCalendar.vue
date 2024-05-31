@@ -184,7 +184,7 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Delete } from "@element-plus/icons-vue";
-import { INITIAL_EVENTS, createEventId } from "../event-utils";
+// import { INITIAL_EVENTS, createEventId } from "../event-utils";
 import { db } from "../firebase";
 import {
   collection,
@@ -263,6 +263,12 @@ const calendarOptions = reactive({
     day: "日",
   },
   initialView: "dayGridMonth",
+  views: {
+    dayGridMonth: {
+      // titleFormat: { year: "numeric", month: "numeric" },
+      // other view-specific options here
+    },
+  },
   events: [],
   // events: INITIAL_EVENTS,
   eventTimeFormat: {
@@ -322,7 +328,7 @@ function handleEventClick(clickInfo) {
   currentEvents.value = clickInfo;
 
   const rect = clickInfo.el.getBoundingClientRect();
-  cardPosition.top = rect.top + window.scrollY;
+  cardPosition.top = rect.top + window.scrollY - 10;
   cardPosition.left = rect.left + window.scrollX + 180;
 
   // Calculate card width
@@ -372,7 +378,7 @@ function eventMouseEnter(clickInfo) {
   currentEvents.value = clickInfo;
 
   const rect = clickInfo.el.getBoundingClientRect();
-  cardPosition.top = rect.top + window.scrollY;
+  cardPosition.top = rect.top + window.scrollY - 10;
   cardPosition.left = rect.left + window.scrollX + 180;
 
   // Calculate card width
@@ -420,8 +426,9 @@ function eventMouseLeave() {
 }
 
 function removeEventClick() {
+  cardVisible.value = false;
   const selectedEvent = currentEvents.value.event;
-  ElMessageBox.prompt("請輸入聯絡電話", "刪除提示", {
+  ElMessageBox.prompt("請輸入登記時的聯絡電話：", "刪除提示", {
     confirmButtonText: "確認",
     cancelButtonText: "取消",
     inputPattern: /^[0-9]{10}$/,
@@ -439,7 +446,7 @@ function removeEventClick() {
       } else {
         ElMessage({
           type: "error",
-          message: "電話號碼不正確",
+          message: "電話號碼不正確，請重新輸入或聯繫街角家志工",
         });
       }
     })
@@ -626,6 +633,18 @@ const shouldRenderContent = computed(() => {
   transition: transform 0.3s ease-in-out;
 }
 
+:deep(.el-tabs__active-bar) {
+  background-color: #fca421;
+}
+
+:deep(.el-tabs__item:hover) {
+  color: #fca421;
+}
+
+:deep(.el-tabs__item.is-active) {
+  color: #fca421;
+}
+
 @media (max-width: 900px) {
   .demo-app-main {
     padding: 0 10px;
@@ -653,8 +672,8 @@ const shouldRenderContent = computed(() => {
   }
 
   .custom-dot {
-    width: 10px;
-    height: 10px;
+    width: 15px;
+    height: 15px;
     border-radius: 50%;
   }
 
@@ -662,6 +681,7 @@ const shouldRenderContent = computed(() => {
     margin-bottom: 1.5em;
     font-size: 0.75em;
   }
+
   /* .fc .fc-daygrid-body-unbalanced */
   :deep(.fc-daygrid-day-events) {
     min-height: 2em;
@@ -696,7 +716,7 @@ const shouldRenderContent = computed(() => {
 .custom-event-date,
 .custom-event-time {
   margin-bottom: 5px;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 @media (max-width: 480px) {
