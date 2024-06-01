@@ -10,10 +10,10 @@
       <el-tab-pane label="光復國小" name="3"></el-tab-pane>
     </el-tabs>
     <div class="tags-container">
-      <el-tag color="#fca421">食物</el-tag>
-      <el-tag color="#67C23A">保暖</el-tag>
-      <el-tag color="#409EFF">衛生</el-tag>
-      <el-tag color="#fc8686">醫療</el-tag>
+      <el-button color="#fca421">食物</el-button>
+      <el-button color="#67C23A">保暖</el-button>
+      <el-button color="#409EFF">衛生</el-button>
+      <el-button color="#fc8686">醫療</el-button>
     </div>
   </div>
   <div class="demo-app">
@@ -733,12 +733,10 @@ watch(
   display: flex;
   padding-bottom: 5px;
   margin-left: 40px;
-}
-.el-tag:not(:last-child) {
-  margin-right: 10px;
+  color: #fff;
 }
 
-.el-tag.el-tag--primary {
+:deep(.el-button > span) {
   color: #fff;
 }
 
@@ -820,15 +818,6 @@ watch(
   .tags-container {
     margin-top: 0px;
     margin-left: 0px;
-  }
-
-  .tags-container .el-tag {
-    /* Remove margin between tags */
-    margin-right: 5px;
-  }
-
-  :deep(.el-tabs__item) {
-    font-size: 12px;
   }
 
   :deep(.el-dialog) {
