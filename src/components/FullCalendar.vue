@@ -52,13 +52,51 @@
               autocomplete="off"
             />
           </el-form-item>
-          <el-form-item label="內容" :label-width="formLabelWidth" prop="item">
+          <!-- <el-form-item label="內容" :label-width="formLabelWidth" prop="item">
             <el-input
               v-model="form.item"
               placeholder="請描述物資內容 （例：素菜便當）"
               autocomplete="off"
             />
+          </el-form-item> -->
+          <el-form-item
+            label="物資類型"
+            :label-width="formLabelWidth"
+            prop="type"
+          >
+            <el-select
+              v-model="form.type"
+              placeholder="請選擇物資類型"
+              clearable
+            >
+              <el-option
+                v-for="option in typeOptions"
+                :key="option.value"
+                :label="option.label"
+                :value="option.value"
+              />
+            </el-select>
           </el-form-item>
+          <div v-if="shouldRenderItem">
+            <el-form-item
+              label="物資內容"
+              :label-width="formLabelWidth"
+              prop="item"
+            >
+              <el-select
+                v-model="form.item"
+                placeholder="請選擇物資內容"
+                clearable
+              >
+                <el-option
+                  v-for="option in itemOptions"
+                  :key="option.value"
+                  :label="option.label"
+                  :value="option.value"
+                />
+              </el-select>
+            </el-form-item>
+          </div>
           <el-form-item
             label="份數"
             :label-width="formLabelWidth"
@@ -72,20 +110,16 @@
               <template #append>份</template>
             </el-input>
           </el-form-item>
-          <el-form-item label="類型" :label-width="formLabelWidth" prop="type">
-            <el-select v-model="form.type" placeholder="請選擇物資類型">
-              <el-option label="食物" value="food" />
-              <el-option label="保暖" value="clothes" />
-              <el-option label="衛生" value="hygiene" />
-              <el-option label="醫療" value="medical" />
-            </el-select>
-          </el-form-item>
           <el-form-item
             label="地點"
             :label-width="formLabelWidth"
             prop="location"
           >
-            <el-select v-model="form.location" placeholder="請選擇發放地點">
+            <el-select
+              v-model="form.location"
+              placeholder="請選擇發放地點"
+              clearable
+            >
               <el-option label="台中火車站" value="1" />
               <el-option label="民權地下道" value="2" />
               <el-option label="光復國小" value="3" />
@@ -97,6 +131,7 @@
               type="date"
               placeholder="請選擇日期"
               :disabled-date="disabledDate"
+              clearable
             />
           </el-form-item>
           <el-form-item label="時間" :label-width="formLabelWidth" prop="time">
@@ -107,6 +142,7 @@
               step="00:15"
               end="22:30"
               placeholder="請選擇時間"
+              clearable
             />
           </el-form-item>
         </el-form>
@@ -177,7 +213,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onBeforeUnmount, computed } from "vue";
+import {
+  ref,
+  reactive,
+  onMounted,
+  onBeforeUnmount,
+  computed,
+  watch,
+} from "vue";
 import FullCalendar from "@fullcalendar/vue3";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -206,6 +249,10 @@ const selectedTab = ref("1");
 const screenWidth = ref(window.innerWidth);
 fetchEvents();
 
+const shouldRenderItem = computed(() => {
+  return form.value.type && form.value.type !== "";
+});
+
 const disabledDate = (time) => {
   return time.getTime() < Date.now() - 86400000;
 };
@@ -232,12 +279,48 @@ const form = ref({
   name: "",
   org: "",
   phone: "",
+  type: "",
   item: "",
   quantity: "",
-  type: "",
   location: "",
   date: "",
   time: "",
+});
+
+const typeOptions = [
+  { label: "食物", value: "food" },
+  { label: "保暖", value: "clothes" },
+  { label: "衛生", value: "hygiene" },
+  { label: "醫療", value: "medical" },
+];
+
+const itemOptions = computed(() => {
+  switch (form.value.type) {
+    case "food":
+      return [
+        { label: "包子", value: "bun" },
+        { label: "麵包", value: "bread" },
+        { label: "便當", value: "bento" },
+        { label: "水果", value: "fruit" },
+      ];
+    case "clothes":
+      return [
+        { label: "短袖上衣", value: "bun" },
+        { label: "長袖上衣", value: "bread" },
+      ];
+    case "hygiene":
+      return [
+        { label: "牙刷", value: "toothbrush" },
+        { label: "牙膏", value: "toothpaste" },
+        { label: "衛生棉", value: "pads" },
+        { label: "衛生紙", value: "tissue" },
+        { label: "棉花棒", value: "cottonswab" },
+      ];
+    case "medical":
+      return [{ label: "診療", value: "doctor" }];
+    default:
+      return [];
+  }
 });
 
 const calendarOptions = reactive({
@@ -506,6 +589,7 @@ const handleSubmit = () => {
 
       dialogVisible.value = false;
     } else {
+      console.log(form.value.type);
       console.log("Form validation failed");
     }
   });
@@ -585,6 +669,15 @@ onBeforeUnmount(() => {
 const shouldRenderContent = computed(() => {
   return screenWidth.value >= 600;
 });
+
+watch(
+  () => form.value.type,
+  (newValue, oldValue) => {
+    if (newValue !== oldValue) {
+      form.value.item = ""; // Reset form.item when type changes
+    }
+  }
+);
 </script>
 
 <style scoped>
@@ -652,10 +745,6 @@ const shouldRenderContent = computed(() => {
 
   .dialog-title {
     font-size: 18px;
-  }
-
-  .formContent {
-    padding: 10px;
   }
 
   .demo-app-calendar {
