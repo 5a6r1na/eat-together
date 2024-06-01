@@ -86,6 +86,7 @@
               <el-select
                 v-model="form.item"
                 placeholder="請選擇物資內容"
+                multiple
                 clearable
               >
                 <el-option
