@@ -1,13 +1,21 @@
 <template>
-  <el-tabs
-    v-model="selectedTab"
-    @tab-click="handleTabClick"
-    class="custom-tabs"
-  >
-    <el-tab-pane label="台中火車站" name="1"></el-tab-pane>
-    <el-tab-pane label="民權地下道" name="2"></el-tab-pane>
-    <el-tab-pane label="光復國小" name="3"></el-tab-pane>
-  </el-tabs>
+  <div class="menu-container">
+    <el-tabs
+      v-model="selectedTab"
+      @tab-click="handleTabClick"
+      class="tabs-container"
+    >
+      <el-tab-pane label="台中火車站" name="1"></el-tab-pane>
+      <el-tab-pane label="民權地下道" name="2"></el-tab-pane>
+      <el-tab-pane label="光復國小" name="3"></el-tab-pane>
+    </el-tabs>
+    <div class="tags-container">
+      <el-tag color="#fca421">食物</el-tag>
+      <el-tag color="#67C23A">保暖</el-tag>
+      <el-tag color="#409EFF">衛生</el-tag>
+      <el-tag color="#fc8686">醫療</el-tag>
+    </div>
+  </div>
   <div class="demo-app">
     <!-- <el-button style="width: 200px" type="warning" @click="toggleDialog"
       >填寫表單</el-button
@@ -52,13 +60,14 @@
               autocomplete="off"
             />
           </el-form-item>
-          <!-- <el-form-item label="內容" :label-width="formLabelWidth" prop="item">
+          <!-- <el-form-item label="物資內容" :label-width="formLabelWidth" prop="item">
             <el-input
               v-model="form.item"
               placeholder="請描述物資內容 （例：素菜便當）"
               autocomplete="off"
             />
           </el-form-item> -->
+          <!-- sabrina{6/1}: item dropdown -->
           <el-form-item
             label="物資類型"
             :label-width="formLabelWidth"
@@ -249,6 +258,7 @@ const selectedTab = ref("1");
 const screenWidth = ref(window.innerWidth);
 fetchEvents();
 
+// sabrina{6/1}: item dropdown
 const shouldRenderItem = computed(() => {
   return form.value.type && form.value.type !== "";
 });
@@ -287,6 +297,7 @@ const form = ref({
   time: "",
 });
 
+// sabrina{6/1}: item dropdown
 const typeOptions = [
   { label: "食物", value: "food" },
   { label: "保暖", value: "clothes" },
@@ -294,6 +305,7 @@ const typeOptions = [
   { label: "醫療", value: "medical" },
 ];
 
+// sabrina{6/1}: item dropdown
 const itemOptions = computed(() => {
   switch (form.value.type) {
     case "food":
@@ -319,7 +331,20 @@ const itemOptions = computed(() => {
     case "medical":
       return [{ label: "診療", value: "doctor" }];
     default:
-      return [];
+      return [
+        { label: "包子", value: "bun" },
+        { label: "麵包", value: "bread" },
+        { label: "便當", value: "bento" },
+        { label: "水果", value: "fruit" },
+        { label: "短袖上衣", value: "bun" },
+        { label: "長袖上衣", value: "bread" },
+        { label: "牙刷", value: "toothbrush" },
+        { label: "牙膏", value: "toothpaste" },
+        { label: "衛生棉", value: "pads" },
+        { label: "衛生紙", value: "tissue" },
+        { label: "棉花棒", value: "cottonswab" },
+        { label: "診療", value: "doctor" },
+      ];
   }
 });
 
@@ -442,6 +467,13 @@ function handleEventClick(clickInfo) {
       border: `1px solid ${clickInfo.event.backgroundColor}`,
     };
   }
+
+  // sabrina{6/1}: item dropdown
+  const getLabelFromValue = (value) => {
+    console.log(itemOptions.value);
+    const option = itemOptions.value.find((item) => item.value === value);
+    return option ? option.label : "";
+  };
 
   cardData.name = clickInfo.event.extendedProps.name;
   cardData.org = clickInfo.event.extendedProps.org;
@@ -670,11 +702,13 @@ const shouldRenderContent = computed(() => {
   return screenWidth.value >= 600;
 });
 
+// sabrina{6/1}: item dropdown
 watch(
   () => form.value.type,
   (newValue, oldValue) => {
     if (newValue !== oldValue) {
-      form.value.item = ""; // Reset form.item when type changes
+      // Reset form.item when type changes
+      form.value.item = "";
     }
   }
 );
@@ -688,10 +722,30 @@ watch(
   padding: 0;
 }
 
-.custom-tabs {
+.menu-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 20px;
+}
+
+.tags-container {
+  display: flex;
+  padding-bottom: 5px;
+  margin-left: 40px;
+}
+.el-tag:not(:last-child) {
+  margin-right: 10px;
+}
+
+.el-tag.el-tag--primary {
+  color: #fff;
+}
+
+.tabs-container {
   width: 100%;
   /* max-width: 600px; */
-  margin: 0 auto;
+  /* margin: 0 auto; */
 }
 
 .demo-app-main {
@@ -754,6 +808,27 @@ watch(
 
   .dialogMaxWidth {
     max-width: 90%;
+  }
+
+  .menu-container {
+    /* max-width: 100%; */
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 0px;
+  }
+
+  .tags-container {
+    margin-top: 0px;
+    margin-left: 0px;
+  }
+
+  .tags-container .el-tag {
+    /* Remove margin between tags */
+    margin-right: 5px;
+  }
+
+  :deep(.el-tabs__item) {
+    font-size: 12px;
   }
 
   :deep(.el-dialog) {
