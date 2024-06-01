@@ -10,10 +10,18 @@
       <el-tab-pane label="光復國小" name="3"></el-tab-pane>
     </el-tabs>
     <div class="tags-container">
-      <el-button color="#fca421">食物</el-button>
-      <el-button color="#67C23A">保暖</el-button>
-      <el-button color="#409EFF">衛生</el-button>
-      <el-button color="#fc8686">醫療</el-button>
+      <el-button style="background-color: #fca421; color: white"
+        >食物</el-button
+      >
+      <el-button style="background-color: #67c23a; color: white"
+        >保暖</el-button
+      >
+      <el-button style="background-color: #409eff; color: white"
+        >衛生</el-button
+      >
+      <el-button style="background-color: #fc8686; color: white"
+        >醫療</el-button
+      >
     </div>
   </div>
   <div class="demo-app">
@@ -733,10 +741,6 @@ watch(
   display: flex;
   padding-bottom: 5px;
   margin-left: 40px;
-  color: #fff;
-}
-
-:deep(.el-button > span) {
   color: #fff;
 }
 
