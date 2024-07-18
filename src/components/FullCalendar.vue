@@ -405,6 +405,7 @@ const calendarOptions = reactive({
   eventMouseEnter: eventMouseEnter,
   eventMouseLeave: eventMouseLeave,
   // eventsSet: handleEvents,
+  select: toggleDialog,
 });
 
 const rules = reactive({
@@ -421,7 +422,11 @@ const rules = reactive({
   time: [{ required: true, message: "請選擇時間", trigger: "change" }],
 });
 
-function toggleDialog() {
+function toggleDialog(info) {
+  // sabrina{7/18}: auto-fill form date when click calendar date
+  if (!dialogVisible.value) {
+    form.value.date = info.startStr;
+  }
   dialogVisible.value = !dialogVisible.value;
 }
 
@@ -497,6 +502,7 @@ function handleEventClick(clickInfo) {
 }
 
 function eventMouseEnter(clickInfo) {
+  console.log(form.name);
   cardVisible.value = true;
   currentEvents.value = clickInfo;
 
