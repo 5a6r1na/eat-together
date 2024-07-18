@@ -1,4 +1,5 @@
 <template>
+  <!-- <Aside></Aside> -->
   <div class="menu-container">
     <el-tabs
       v-model="selectedTab"
@@ -25,211 +26,248 @@
     </div>
   </div>
   <div class="demo-app">
-    <!-- <el-button style="width: 200px" type="warning" @click="toggleDialog"
-      >填寫表單</el-button
-    > -->
-    <el-dialog v-model="dialogVisible" width="500px">
-      <p style="font-size: 2em">發放表單</p>
-      <div class="formContent">
-        <el-form
-          :model="form"
-          :rules="rules"
-          ref="formRef"
-          :label-position="'left'"
-          style="padding: 15px"
-          class="donation-form"
-        >
-          <el-form-item label="姓名" :label-width="formLabelWidth" prop="name">
-            <el-input
-              v-model="form.name"
-              placeholder="請填寫姓名（例: 王小明、Andy-lee）"
-              autocomplete="off"
-            />
-          </el-form-item>
-          <el-form-item
-            label="單位名稱"
-            :label-width="formLabelWidth"
-            prop="org"
+    <div class="container" style="display: flex">
+      <div class="demo-app-sidebar">
+        <div class="demo-app-sidebar-section">
+          <h2>Instructions</h2>
+          <ul>
+            <li>Select dates and you will be prompted to create a new event</li>
+          </ul>
+        </div>
+        <div class="demo-app-sidebar-section">
+          <h2>All Events ({{ calendarOptions.events.length }})</h2>
+          <div v-for="(eventsByType, type) in groupedEventsByType" :key="type">
+            <h3>{{ type }} ({{ eventsByType.length }})</h3>
+            <ul>
+              <li
+                v-for="event in eventsByType"
+                :key="event.id"
+                :style="{ backgroundColor: event.backgroundColor }"
+              >
+                <b>{{ event.start }}</b>
+                <i>{{ event.title }}</i>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <el-dialog v-model="dialogVisible" width="500px">
+        <p style="font-size: 2em">發放表單</p>
+        <div class="formContent">
+          <el-form
+            :model="form"
+            :rules="rules"
+            ref="formRef"
+            :label-position="'left'"
+            style="padding: 15px"
+            class="donation-form"
           >
-            <el-input
-              v-model="form.org"
-              placeholder="請填寫單位名稱（例: 個人、街角家）"
-              autocomplete="off"
-            />
-          </el-form-item>
-          <el-form-item
-            label="聯絡電話"
-            :label-width="formLabelWidth"
-            prop="phone"
-          >
-            <el-input
-              v-model="form.phone"
-              placeholder="請填寫手機號碼（例：0912345678）"
-              autocomplete="off"
-            />
-          </el-form-item>
-          <!-- <el-form-item label="物資內容" :label-width="formLabelWidth" prop="item">
+            <el-form-item
+              label="姓名"
+              :label-width="formLabelWidth"
+              prop="name"
+            >
+              <el-input
+                v-model="form.name"
+                placeholder="請填寫姓名（例: 王小明、Andy-lee）"
+                autocomplete="off"
+              />
+            </el-form-item>
+            <el-form-item
+              label="單位名稱"
+              :label-width="formLabelWidth"
+              prop="org"
+            >
+              <el-input
+                v-model="form.org"
+                placeholder="請填寫單位名稱（例: 個人、街角家）"
+                autocomplete="off"
+              />
+            </el-form-item>
+            <el-form-item
+              label="聯絡電話"
+              :label-width="formLabelWidth"
+              prop="phone"
+            >
+              <el-input
+                v-model="form.phone"
+                placeholder="請填寫手機號碼（例：0912345678）"
+                autocomplete="off"
+              />
+            </el-form-item>
+            <!-- <el-form-item label="物資內容" :label-width="formLabelWidth" prop="item">
             <el-input
               v-model="form.item"
               placeholder="請描述物資內容 （例：素菜便當）"
               autocomplete="off"
             />
           </el-form-item> -->
-          <!-- sabrina{6/1}: item dropdown -->
-          <el-form-item
-            label="物資類型"
-            :label-width="formLabelWidth"
-            prop="type"
-          >
-            <el-select
-              v-model="form.type"
-              placeholder="請選擇物資類型"
-              clearable
-            >
-              <el-option
-                v-for="option in typeOptions"
-                :key="option.value"
-                :label="option.label"
-                :value="option.value"
-              />
-            </el-select>
-          </el-form-item>
-          <div v-if="shouldRenderItem">
+            <!-- sabrina{6/1}: item dropdown -->
             <el-form-item
-              label="物資內容"
+              label="物資類型"
               :label-width="formLabelWidth"
-              prop="item"
+              prop="type"
             >
               <el-select
-                v-model="form.item"
-                placeholder="請選擇物資內容"
+                v-model="form.type"
+                placeholder="請選擇物資類型"
                 clearable
               >
                 <el-option
-                  v-for="option in itemOptions"
+                  v-for="option in typeOptions"
                   :key="option.value"
                   :label="option.label"
                   :value="option.value"
                 />
               </el-select>
             </el-form-item>
-          </div>
-          <el-form-item
-            label="份數"
-            :label-width="formLabelWidth"
-            prop="quantity"
-          >
-            <el-input
-              v-model="form.quantity"
-              placeholder="請填寫提供物資份數（例：10）"
-              autocomplete="off"
-            >
-              <template #append>份</template>
-            </el-input>
-          </el-form-item>
-          <el-form-item
-            label="地點"
-            :label-width="formLabelWidth"
-            prop="location"
-          >
-            <el-select
-              v-model="form.location"
-              placeholder="請選擇發放地點"
-              clearable
-            >
-              <el-option label="台中火車站" value="1" />
-              <el-option label="民權地下道" value="2" />
-              <el-option label="光復國小" value="3" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="日期" :label-width="formLabelWidth" prop="date">
-            <el-date-picker
-              v-model="form.date"
-              type="date"
-              placeholder="請選擇日期"
-              :disabled-date="disabledDate"
-              clearable
-            />
-          </el-form-item>
-          <el-form-item label="時間" :label-width="formLabelWidth" prop="time">
-            <el-time-select
-              v-model="form.time"
-              style="width: 240px"
-              start="07:00"
-              step="00:15"
-              end="22:30"
-              placeholder="請選擇時間"
-              clearable
-            />
-          </el-form-item>
-        </el-form>
-      </div>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button @click="closeDialog">取消</el-button>
-          <el-button type="primary" @click="handleSubmit"> 確認 </el-button>
-        </div>
-      </template>
-    </el-dialog>
-    <div class="demo-app-main">
-      <FullCalendar
-        ref="fullCalendar"
-        class="demo-app-calendar"
-        :options="calendarOptions"
-      >
-        <template v-slot:eventContent="arg">
-          <div
-            v-if="shouldRenderContent"
-            class="custom-event"
-            :style="{ backgroundColor: arg.event.backgroundColor }"
-          >
-            <div class="custom-event-time">
-              {{ arg.timeText }} - {{ arg.event.extendedProps.item }} ({{
-                arg.event.extendedProps.quantity
-              }}份)
+            <div v-if="shouldRenderItem">
+              <el-form-item
+                label="物資內容"
+                :label-width="formLabelWidth"
+                prop="item"
+              >
+                <el-select
+                  v-model="form.item"
+                  placeholder="請選擇物資內容"
+                  clearable
+                >
+                  <el-option
+                    v-for="option in itemOptions"
+                    :key="option.value"
+                    :label="option.label"
+                    :value="option.value"
+                  />
+                </el-select>
+              </el-form-item>
             </div>
-          </div>
-          <div
-            v-else
-            class="custom-dot"
-            :style="{ backgroundColor: arg.event.backgroundColor }"
-          ></div>
-        </template>
-      </FullCalendar>
-    </div>
-    <el-card
-      v-if="cardVisible"
-      class="box-card"
-      shadow="hover"
-      :style="cardStyle"
-      @click.stop
-    >
-      <template #header>
-        <div
-          class="card-header"
-          style="display: flex; justify-content: space-between"
-        >
-          <span>詳細資訊</span>
-          <el-button @click="removeEventClick">
-            <el-icon style="vertical-align: middle; width: 2em">
-              <Delete /> </el-icon
-          ></el-button>
+            <el-form-item
+              label="份數"
+              :label-width="formLabelWidth"
+              prop="quantity"
+            >
+              <el-input
+                v-model="form.quantity"
+                placeholder="請填寫提供物資份數（例：10）"
+                autocomplete="off"
+              >
+                <template #append>份</template>
+              </el-input>
+            </el-form-item>
+            <el-form-item
+              label="地點"
+              :label-width="formLabelWidth"
+              prop="location"
+            >
+              <el-select
+                v-model="form.location"
+                placeholder="請選擇發放地點"
+                clearable
+              >
+                <el-option label="台中火車站" value="1" />
+                <el-option label="民權地下道" value="2" />
+                <el-option label="光復國小" value="3" />
+              </el-select>
+            </el-form-item>
+            <el-form-item
+              label="日期"
+              :label-width="formLabelWidth"
+              prop="date"
+            >
+              <el-date-picker
+                v-model="form.date"
+                type="date"
+                placeholder="請選擇日期"
+                :disabled-date="disabledDate"
+                clearable
+              />
+            </el-form-item>
+            <el-form-item
+              label="時間"
+              :label-width="formLabelWidth"
+              prop="time"
+            >
+              <el-time-select
+                v-model="form.time"
+                style="width: 240px"
+                start="07:00"
+                step="00:15"
+                end="22:30"
+                placeholder="請選擇時間"
+                clearable
+              />
+            </el-form-item>
+          </el-form>
         </div>
-      </template>
-      <div class="text item">
-        <div class="custom-event-name">姓名：{{ cardData.name }}</div>
-        <div class="custom-event-org">單位：{{ cardData.org }}</div>
-        <div class="custom-event-item">物資內容：{{ cardData.item }}</div>
-        <div class="custom-event-quantity">份數：{{ cardData.quantity }}</div>
-        <div class="custom-event-location">地點：{{ cardData.location }}</div>
-        <div class="custom-event-date">日期：{{ cardData.date }}</div>
-        <div class="custom-event-time">時間：{{ cardData.time }}</div>
+        <template #footer>
+          <div class="dialog-footer">
+            <el-button @click="closeDialog">取消</el-button>
+            <el-button type="primary" @click="handleSubmit"> 確認 </el-button>
+          </div>
+        </template>
+      </el-dialog>
+      <div class="demo-app-main">
+        <FullCalendar
+          ref="fullCalendar"
+          class="demo-app-calendar"
+          :options="calendarOptions"
+        >
+          <template v-slot:eventContent="arg">
+            <div
+              v-if="shouldRenderContent"
+              class="custom-event"
+              :style="{ backgroundColor: arg.event.backgroundColor }"
+            >
+              <div class="custom-event-time">
+                {{ arg.timeText }} - {{ arg.event.extendedProps.item }} ({{
+                  arg.event.extendedProps.quantity
+                }}份)
+              </div>
+            </div>
+            <div
+              v-else
+              class="custom-dot"
+              :style="{ backgroundColor: arg.event.backgroundColor }"
+            ></div>
+          </template>
+        </FullCalendar>
       </div>
-    </el-card>
+      <el-card
+        v-if="cardVisible"
+        class="box-card"
+        shadow="hover"
+        :style="cardStyle"
+        @click.stop
+      >
+        <template #header>
+          <div
+            class="card-header"
+            style="display: flex; justify-content: space-between"
+          >
+            <span>詳細資訊</span>
+            <el-button @click="removeEventClick">
+              <el-icon style="vertical-align: middle; width: 2em">
+                <Delete /> </el-icon
+            ></el-button>
+          </div>
+        </template>
+        <div class="text item">
+          <div class="custom-event-name">姓名：{{ cardData.name }}</div>
+          <div class="custom-event-org">單位：{{ cardData.org }}</div>
+          <div class="custom-event-item">物資內容：{{ cardData.item }}</div>
+          <div class="custom-event-quantity">份數：{{ cardData.quantity }}</div>
+          <div class="custom-event-location">地點：{{ cardData.location }}</div>
+          <div class="custom-event-date">日期：{{ cardData.date }}</div>
+          <div class="custom-event-time">時間：{{ cardData.time }}</div>
+        </div>
+      </el-card>
+    </div>
   </div>
 </template>
 
 <script setup>
+import Aside from "./Aside.vue";
 import {
   ref,
   reactive,
@@ -265,6 +303,18 @@ const cardHovered = ref(false);
 const selectedTab = ref("1");
 const screenWidth = ref(window.innerWidth);
 fetchEvents();
+
+// sabrina{7/18}: sidebar events
+const groupedEventsByType = computed(() => {
+  return calendarOptions.events.reduce((acc, event) => {
+    const type = event.extendedProps.type || "unknown";
+    if (!acc[type]) {
+      acc[type] = [];
+    }
+    acc[type].push(event);
+    return acc;
+  }, {});
+});
 
 // sabrina{6/1}: item dropdown
 const shouldRenderItem = computed(() => {
@@ -439,11 +489,13 @@ function closeCard() {
   cardVisible.value = false;
 }
 
+// handle date selection
 function handleDateSelect(selectInfo) {
   let calendarApi = selectInfo.view.calendar;
   calendarApi.unselect(); // clear date selection
 }
 
+// handle event click
 function handleEventClick(clickInfo) {
   cardVisible.value = true;
   currentEvents.value = clickInfo;
@@ -501,6 +553,7 @@ function handleEventClick(clickInfo) {
   clickInfo.jsEvent.stopPropagation();
 }
 
+// handle hover
 function eventMouseEnter(clickInfo) {
   console.log(form.name);
   cardVisible.value = true;
@@ -689,6 +742,7 @@ function fetchEvents() {
       }
     });
     calendarOptions.events = events;
+    console.log(calendarOptions.events);
     console.log("fetch");
   });
 }
@@ -765,6 +819,12 @@ watch(
 .demo-app-calendar {
   width: 100%;
   max-width: 1200px;
+}
+
+.demo-app-sidebar {
+  padding: 10px;
+  margin-right: 20px;
+  background-color: #f8f9fa;
 }
 
 .dialog-footer {
