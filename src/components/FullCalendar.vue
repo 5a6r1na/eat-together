@@ -63,7 +63,10 @@
                 <div>
                   {{ event.start.split("T")[0] }}
                   {{ event.start.split("T")[1].slice(0, 5) }}
-                  {{ event.extendedProps.item }}
+                  {{
+                    itemMap[event.extendedProps.item] ||
+                    event.extendedProps.item
+                  }}
                 </div>
               </li>
             </ul>
@@ -239,9 +242,12 @@
               :style="{ backgroundColor: arg.event.backgroundColor }"
             >
               <div class="custom-event-time">
-                {{ arg.timeText }} - {{ arg.event.extendedProps.item }} ({{
-                  arg.event.extendedProps.quantity
-                }}份)
+                {{ arg.timeText }} -
+                {{
+                  itemMap[arg.event.extendedProps.item] ||
+                  arg.event.extendedProps.item
+                }}
+                ({{ arg.event.extendedProps.quantity }}份)
               </div>
             </div>
             <div
@@ -391,12 +397,6 @@ const typeOptions = [
   { label: "醫療", value: "medical" },
 ];
 
-// sabrina{7/21}: sidebar event type mapping
-const typeMap = typeOptions.reduce((acc, option) => {
-  acc[option.value] = option.label;
-  return acc;
-}, {});
-
 // sabrina{6/1}: item dropdown
 const itemOptions = computed(() => {
   switch (form.value.type) {
@@ -409,8 +409,8 @@ const itemOptions = computed(() => {
       ];
     case "clothes":
       return [
-        { label: "短袖上衣", value: "bun" },
-        { label: "長袖上衣", value: "bread" },
+        { label: "短袖上衣", value: "shirt" },
+        { label: "長袖上衣", value: "blouse" },
       ];
     case "hygiene":
       return [
@@ -428,8 +428,8 @@ const itemOptions = computed(() => {
         { label: "麵包", value: "bread" },
         { label: "便當", value: "bento" },
         { label: "水果", value: "fruit" },
-        { label: "短袖上衣", value: "bun" },
-        { label: "長袖上衣", value: "bread" },
+        { label: "短袖上衣", value: "shirt" },
+        { label: "長袖上衣", value: "blouse" },
         { label: "牙刷", value: "toothbrush" },
         { label: "牙膏", value: "toothpaste" },
         { label: "衛生棉", value: "pads" },
@@ -439,6 +439,18 @@ const itemOptions = computed(() => {
       ];
   }
 });
+
+// sabrina{7/21}: event type mapping
+const typeMap = typeOptions.reduce((acc, option) => {
+  acc[option.value] = option.label;
+  return acc;
+}, {});
+
+// sabrina{7/21}: event item mapping
+const itemMap = itemOptions.value.reduce((acc, option) => {
+  acc[option.value] = option.label;
+  return acc;
+}, {});
 
 const calendarOptions = reactive({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
@@ -582,7 +594,10 @@ function handleEventClick(clickInfo) {
   cardData.name = clickInfo.event.extendedProps.name;
   cardData.org = clickInfo.event.extendedProps.org;
   cardData.phone = clickInfo.event.extendedProps.phone;
-  cardData.item = clickInfo.event.extendedProps.item;
+  // sabrina{7/21}: card event item mapping
+  cardData.item =
+    itemMap[clickInfo.event.extendedProps.item] ||
+    clickInfo.event.extendedProps.item;
   cardData.quantity = clickInfo.event.extendedProps.quantity;
   cardData.type = clickInfo.event.extendedProps.type;
   cardData.location = clickInfo.event.extendedProps.location;
@@ -594,13 +609,12 @@ function handleEventClick(clickInfo) {
 
 // handle hover
 function eventMouseEnter(clickInfo) {
-  console.log(form.name);
   cardVisible.value = true;
   currentEvents.value = clickInfo;
 
   const rect = clickInfo.el.getBoundingClientRect();
   cardPosition.top = rect.top + window.scrollY - 10;
-  cardPosition.left = rect.left + window.scrollX + 180;
+  cardPosition.left = rect.left + window.scrollX + 100;
 
   // Calculate card width
   const cardWidth = 200;
@@ -634,7 +648,10 @@ function eventMouseEnter(clickInfo) {
   cardData.name = clickInfo.event.extendedProps.name;
   cardData.org = clickInfo.event.extendedProps.org;
   cardData.phone = clickInfo.event.extendedProps.phone;
-  cardData.item = clickInfo.event.extendedProps.item;
+  // sabrina{7/21}: card event item mapping
+  cardData.item =
+    itemMap[clickInfo.event.extendedProps.item] ||
+    clickInfo.event.extendedProps.item;
   cardData.quantity = clickInfo.event.extendedProps.quantity;
   cardData.type = clickInfo.event.extendedProps.type;
   cardData.location = clickInfo.event.extendedProps.location;
@@ -680,8 +697,11 @@ const handleSubmit = () => {
   formRef.value.validate((valid) => {
     if (valid) {
       const formContent = form.value;
-      const formatDate = formContent.date.toISOString().replace(/T.*$/, "");
-      const startTime = `${formatDate}T${formContent.time}`;
+      // sabrina{7/21}: fix timezone
+      const formattedDate = formContent.date.toLocaleDateString("en-CA", {
+        timeZone: "Asia/Taipei",
+      });
+      const startTime = `${formattedDate}T${formContent.time}`;
 
       // Define the mapping between types and colors
       const typeColorMap = {
@@ -693,23 +713,6 @@ const handleSubmit = () => {
 
       // Get the color based on the type
       const backgroundColor = typeColorMap[formContent.type];
-
-      // Create new event in FullCalendar
-      // const calendarApi = fullCalendar.value.getApi();
-      // calendarApi.addEvent({
-      //   id: createEventId(),
-      //   start: startTime,
-      //   backgroundColor: backgroundColor,
-      //   extendedProps: {
-      //     name: formContent.name,
-      //     org: formContent.org,
-      //     phone: formContent.phone,
-      //     item: formContent.item,
-      //     quantity: formContent.quantity,
-      //     type: formContent.type,
-      //     location: formContent.location,
-      //   },
-      // });
 
       const docRef = addDoc(collection(db, "calEvent"), {
         start: startTime,
@@ -727,7 +730,7 @@ const handleSubmit = () => {
 
       dialogVisible.value = false;
     } else {
-      console.log(form.value.type);
+      const formContent = form.value;
       console.log("Form validation failed");
     }
   });
@@ -863,6 +866,7 @@ watch(
 /* sabrina{7/21}: sidebar event style */
 .sidebar-event {
   line-height: 1.5;
+  font-size: 14px;
   color: #ffffff;
   margin: 10px;
   border-radius: 2px;
@@ -990,7 +994,7 @@ watch(
 .custom-event-location,
 .custom-event-date,
 .custom-event-time {
-  margin-bottom: 5px;
+  /* margin-bottom: 5px; */
   font-size: 12px;
 }
 
