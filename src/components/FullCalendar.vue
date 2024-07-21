@@ -553,7 +553,7 @@ function handleEventClick(clickInfo) {
 
   const rect = clickInfo.el.getBoundingClientRect();
   cardPosition.top = rect.top + window.scrollY - 10;
-  cardPosition.left = rect.left + window.scrollX + 180;
+  cardPosition.left = rect.left + window.scrollX + 120;
 
   // Calculate card width
   const cardWidth = 200;
@@ -614,7 +614,7 @@ function eventMouseEnter(clickInfo) {
 
   const rect = clickInfo.el.getBoundingClientRect();
   cardPosition.top = rect.top + window.scrollY - 10;
-  cardPosition.left = rect.left + window.scrollX + 100;
+  cardPosition.left = rect.left + window.scrollX + 120;
 
   // Calculate card width
   const cardWidth = 200;
