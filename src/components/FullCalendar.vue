@@ -302,6 +302,7 @@ const cardVisible = ref(false);
 const cardHovered = ref(false);
 const selectedTab = ref("1");
 const screenWidth = ref(window.innerWidth);
+const formClick = ref(false);
 fetchEvents();
 
 // sabrina{7/18}: sidebar events
@@ -412,6 +413,8 @@ const calendarOptions = reactive({
     formButton: {
       text: "登記發放",
       click: function () {
+        // sabrina{7/21}: add formClick to check dialog trigger position
+        formClick.value = true;
         toggleDialog();
       },
     },
@@ -474,7 +477,8 @@ const rules = reactive({
 
 function toggleDialog(info) {
   // sabrina{7/18}: auto-fill form date when click calendar date
-  if (!dialogVisible.value) {
+  // sabrina{7/21}: add formClick to check dialog trigger position
+  if (!dialogVisible.value && !formClick) {
     form.value.date = info.startStr;
   }
   dialogVisible.value = !dialogVisible.value;
@@ -482,6 +486,8 @@ function toggleDialog(info) {
 
 function closeDialog() {
   dialogVisible.value = false;
+  // sabrina{7/21}: add formClick to check dialog trigger position
+  formClick.value = false;
   resetForm();
 }
 
