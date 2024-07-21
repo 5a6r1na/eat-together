@@ -52,7 +52,7 @@
             v-for="(eventsByType, typeLabel) in groupedEventsByType"
             :key="typeLabel"
           >
-            <h3>{{ typeLabel }} ({{ eventsByType.length }})</h3>
+            <h2>{{ typeLabel }} ({{ eventsByType.length }})</h2>
             <ul>
               <li
                 class="sidebar-event"
