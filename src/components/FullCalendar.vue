@@ -292,7 +292,6 @@
 </template>
 
 <script setup>
-import Aside from "./Aside.vue";
 import {
   ref,
   reactive,
@@ -318,6 +317,8 @@ import {
 } from "firebase/firestore";
 
 const fullCalendar = ref(null);
+const currentYear = ref();
+const currentMonth = ref();
 const currentEvents = ref([]);
 const currentEvent = ref(null);
 const cardStyle = ref({});
@@ -328,7 +329,6 @@ const cardHovered = ref(false);
 const selectedTab = ref("1");
 const screenWidth = ref(window.innerWidth);
 const formClick = ref(false);
-fetchEvents();
 
 // sabrina{7/18}: sidebar events
 const groupedEventsByType = computed(() => {
@@ -484,7 +484,15 @@ const calendarOptions = reactive({
     },
   },
   events: [],
-  // events: INITIAL_EVENTS,
+  // sabrina{7/21}: get calendar view time information
+  datesSet: (info) => {
+    const today = info.view.currentStart;
+    // sabrina{7/21}: note-fullcalendar month index starts from 0
+    currentMonth.value = today.getMonth();
+    currentYear.value = today.getFullYear();
+
+    fetchEvents(currentYear.value, currentMonth.value, selectedTab.value);
+  },
   eventTimeFormat: {
     hour: "numeric",
     minute: "2-digit",
@@ -583,13 +591,6 @@ function handleEventClick(clickInfo) {
       border: `1px solid ${clickInfo.event.backgroundColor}`,
     };
   }
-
-  // sabrina{6/1}: item dropdown
-  const getLabelFromValue = (value) => {
-    console.log(itemOptions.value);
-    const option = itemOptions.value.find((item) => item.value === value);
-    return option ? option.label : "";
-  };
 
   cardData.name = clickInfo.event.extendedProps.name;
   cardData.org = clickInfo.event.extendedProps.org;
@@ -760,13 +761,22 @@ function handleClickOutside(event) {
   }
 }
 
-function fetchEvents() {
+// sabrina{7/21}: fetch events from firebase by month and tab
+function fetchEvents(year, month, selectedTab) {
   const eventsCol = collection(db, "calEvent");
   onSnapshot(eventsCol, (snapshot) => {
     const events = [];
+    const startOfMonth = new Date(year, month, 1);
+    const endOfMonth = new Date(year, month + 1, 0);
+
     snapshot.forEach((doc) => {
       const data = doc.data();
-      if (data.location === selectedTab.value) {
+      const eventStartDate = new Date(data.start);
+      if (
+        eventStartDate >= startOfMonth &&
+        eventStartDate <= endOfMonth &&
+        data.location === selectedTab
+      ) {
         events.push({
           id: doc.id,
           start: data.start,
@@ -784,13 +794,14 @@ function fetchEvents() {
       }
     });
     calendarOptions.events = events;
-    console.log(calendarOptions.events);
-    console.log("fetch");
+    console.log("fetch:", calendarOptions.events.length);
   });
 }
 
+// sabrina{7/21}: fetch event when switch tab
 function handleTabClick(tab) {
-  fetchEvents();
+  selectedTab.value = tab.props.name;
+  fetchEvents(currentYear.value, currentMonth.value, selectedTab.value);
 }
 
 const updateScreenWidth = () => {
