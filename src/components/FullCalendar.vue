@@ -29,23 +29,42 @@
     <div class="container" style="display: flex">
       <div class="demo-app-sidebar">
         <div class="demo-app-sidebar-section">
-          <h2>Instructions</h2>
-          <ul>
-            <li>Select dates and you will be prompted to create a new event</li>
-          </ul>
+          <h2>已登記物資</h2>
+          <!-- sabrina{7/21}: move tags to sidebar -->
+          <div class="sidebar-tags">
+            <el-button style="background-color: #fca421; color: white"
+              >食物</el-button
+            >
+            <el-button style="background-color: #67c23a; color: white"
+              >保暖</el-button
+            >
+            <el-button style="background-color: #409eff; color: white"
+              >衛生</el-button
+            >
+            <el-button style="background-color: #fc8686; color: white"
+              >醫療</el-button
+            >
+          </div>
         </div>
         <div class="demo-app-sidebar-section">
-          <h2>All Events ({{ calendarOptions.events.length }})</h2>
-          <div v-for="(eventsByType, type) in groupedEventsByType" :key="type">
-            <h3>{{ type }} ({{ eventsByType.length }})</h3>
+          <h2>所有物資 ({{ calendarOptions.events.length }})</h2>
+          <div
+            v-for="(eventsByType, typeLabel) in groupedEventsByType"
+            :key="typeLabel"
+          >
+            <h3>{{ typeLabel }} ({{ eventsByType.length }})</h3>
             <ul>
               <li
+                class="sidebar-event"
                 v-for="event in eventsByType"
                 :key="event.id"
                 :style="{ backgroundColor: event.backgroundColor }"
               >
-                <b>{{ event.start }}</b>
-                <i>{{ event.title }}</i>
+                <div>
+                  {{ event.start.split("T")[0] }}
+                  {{ event.start.split("T")[1].slice(0, 5) }}
+                  {{ event.extendedProps.item }}
+                </div>
               </li>
             </ul>
           </div>
@@ -307,14 +326,22 @@ fetchEvents();
 
 // sabrina{7/18}: sidebar events
 const groupedEventsByType = computed(() => {
-  return calendarOptions.events.reduce((acc, event) => {
-    const type = event.extendedProps.type || "unknown";
-    if (!acc[type]) {
-      acc[type] = [];
+  const grouped = calendarOptions.events.reduce((acc, event) => {
+    const typeValue = event.extendedProps.type || "unknown";
+    const typeLabel = typeMap[typeValue] || "unknown";
+    if (!acc[typeLabel]) {
+      acc[typeLabel] = [];
     }
-    acc[type].push(event);
+    acc[typeLabel].push(event);
     return acc;
   }, {});
+
+  // sabrina{7/21}: sort events within each type group
+  Object.keys(grouped).forEach((typeLabel) => {
+    grouped[typeLabel].sort((a, b) => new Date(a.start) - new Date(b.start));
+  });
+
+  return grouped;
 });
 
 // sabrina{6/1}: item dropdown
@@ -363,6 +390,12 @@ const typeOptions = [
   { label: "衛生", value: "hygiene" },
   { label: "醫療", value: "medical" },
 ];
+
+// sabrina{7/21}: sidebar event type mapping
+const typeMap = typeOptions.reduce((acc, option) => {
+  acc[option.value] = option.label;
+  return acc;
+}, {});
 
 // sabrina{6/1}: item dropdown
 const itemOptions = computed(() => {
@@ -803,17 +836,11 @@ watch(
   margin: 10px 20px;
 }
 
-.tags-container {
+.sidebar-tags {
   display: flex;
   padding-bottom: 5px;
-  margin-left: 40px;
+  /* margin-left: 40px; */
   color: #fff;
-}
-
-.tabs-container {
-  width: 100%;
-  /* max-width: 600px; */
-  /* margin: 0 auto; */
 }
 
 .demo-app-main {
@@ -831,6 +858,14 @@ watch(
   padding: 10px;
   margin-right: 20px;
   background-color: #f8f9fa;
+}
+
+/* sabrina{7/21}: sidebar event style */
+.sidebar-event {
+  line-height: 1.5;
+  color: #ffffff;
+  margin: 10px;
+  border-radius: 2px;
 }
 
 .dialog-footer {
@@ -866,7 +901,15 @@ watch(
   color: #fca421;
 }
 
+/* sabrina{7/21}: hide tabbar tags */
+.tags-container {
+  display: none;
+}
+
 @media (max-width: 900px) {
+  .demo-app-sidebar {
+    display: none;
+  }
   .demo-app-main {
     padding: 0 10px;
   }
@@ -892,6 +935,9 @@ watch(
   }
 
   .tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
     margin-top: 0px;
     margin-left: 0px;
   }
