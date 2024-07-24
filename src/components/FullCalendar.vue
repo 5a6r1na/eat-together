@@ -11,17 +11,17 @@
       <el-tab-pane label="光復國小" name="3"></el-tab-pane>
     </el-tabs>
     <div class="tags-container">
-      <el-button style="background-color: #fca421; color: white"
-        >食物</el-button
-      >
-      <el-button style="background-color: #67c23a; color: white"
-        >保暖</el-button
-      >
       <el-button style="background-color: #409eff; color: white"
         >衛生</el-button
       >
       <el-button style="background-color: #fc8686; color: white"
         >醫療</el-button
+      >
+      <el-button style="background-color: #67c23a; color: white"
+        >保暖</el-button
+      >
+      <el-button style="background-color: #fca421; color: white"
+        >食物</el-button
       >
     </div>
   </div>
@@ -32,17 +32,17 @@
           <h2>已登記物資</h2>
           <!-- sabrina{7/21}: move tags to sidebar -->
           <div class="sidebar-tags">
-            <el-button style="background-color: #fca421; color: white"
-              >食物</el-button
-            >
-            <el-button style="background-color: #67c23a; color: white"
-              >保暖</el-button
-            >
             <el-button style="background-color: #409eff; color: white"
               >衛生</el-button
             >
             <el-button style="background-color: #fc8686; color: white"
               >醫療</el-button
+            >
+            <el-button style="background-color: #67c23a; color: white"
+              >保暖</el-button
+            >
+            <el-button style="background-color: #fca421; color: white"
+              >食物</el-button
             >
           </div>
         </div>
