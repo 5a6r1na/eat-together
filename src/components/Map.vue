@@ -1,26 +1,68 @@
 <template>
-  <!-- <div class="map-container bg-gray-100">
-    <div class="flex justify-center items-center px-4 py-8"> -->
-  <!-- Left side: Image -->
-  <!-- <div class="flex-shrink-0">
-        <img class="h-80 w-auto" src="/img/banner.png" alt="Hero Image" />
-      </div> -->
-
-  <!-- Right side: Title -->
-  <!-- <div class="ml-4">
-        <h1 class="text-2xl font-bold text-black">地圖</h1>
-        <p class="text-lg text-gray-800">地圖</p>
-      </div>
-    </div>
-  </div> -->
-  <div class="py-10">
-    <h2 class="text-left text-2xl">周邊地圖</h2>
-    <img class="h-150 w-full" src="/img/taichungstation.png" alt="Hero Image" />
+  <h2
+    style="
+      color: #ffffff;
+      margin-top: 30px;
+      text-align: left;
+      font-weight: bold;
+    "
+  >
+    周邊地圖
+  </h2>
+  <!-- <div style="margin-top: 30px"> -->
+  <div class="map-container">
+    <el-carousel :interval="5000" arrow="always" height="500px">
+      <el-carousel-item v-for="(image, index) in selectedImages" :key="index">
+        <img
+          :src="image"
+          :alt="'Image ' + (index + 1)"
+          class="carousel-image"
+        />
+        <div v-if="!image">暫時無法顯示圖片</div>
+      </el-carousel-item>
+    </el-carousel>
   </div>
+  <!-- </div> -->
 </template>
 
-<script setup></script>
+<script setup>
+import { computed } from "vue";
+import { useEventStore } from "../stores/eventStore";
+
+import taichungStation from "/img/taichungstation.jpg";
+import taichungStationMap from "/img/taichungstationMap.png";
+import mingquan from "/img/mingquan.png";
+import mingquanMap from "/img/mingquanMap.jpg";
+import guangfu from "/img/guangfu.jpg";
+import guangfunMap from "/img/guangfuMap.png";
+
+const store = useEventStore();
+
+const taichungStationImages = [taichungStation, taichungStationMap];
+const mingquanImages = [mingquan, mingquanMap];
+const guangfuImages = [guangfu, guangfunMap];
+
+const selectedImages = computed(() => {
+  if (store.selectedTab == "1") {
+    return taichungStationImages;
+  } else if (store.selectedTab == "2") {
+    return mingquanImages;
+  } else if (store.selectedTab == "3") {
+    return guangfuImages;
+  }
+});
+</script>
 
 <style>
-/* Add custom styles here if needed */
+.map-container {
+  padding: 0 2rem;
+}
+
+.carousel-image {
+  width: 100%;
+  height: 600px;
+  object-fit: cover;
+  display: block;
+  border-radius: 8px;
+}
 </style>
