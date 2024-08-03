@@ -1,30 +1,67 @@
 <template>
-  <div class="hero-container bg-orange-100">
-    <div class="flex justify-center items-center px-4 py-8">
-      <!-- Left side: Image -->
-      <div class="flex-shrink-0 hero-image">
-        <img class="h-80 w-auto" src="/img/banner.png" alt="Hero Image" />
-      </div>
-
-      <!-- Right side: Title -->
-      <div class="ml-4 hide-on-small-screen">
-        <h1 class="text-2xl font-bold text-black">資源不浪費</h1>
-        <p class="text-lg text-gray-800">無家者的生活保障</p>
-      </div>
+  <div class="hero-container">
+    <div class="hero-image">
+      <img :src="currentImageSrc" alt="Hero Image" />
     </div>
   </div>
 </template>
 
-<script setup></script>
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from "vue";
 
-<style>
-@media (max-width: 600px) {
-  .h-80 {
-    height: 7em;
+const largeImage = "/img/banner.jpg";
+const smallImage = "/img/banner-small.png";
+
+const currentImageSrc = ref(largeImage);
+
+const updateImageSrc = () => {
+  const windowWidth = window.innerWidth;
+  currentImageSrc.value = windowWidth <= 480 ? smallImage : largeImage;
+};
+
+onMounted(() => {
+  updateImageSrc();
+  window.addEventListener("resize", updateImageSrc);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", updateImageSrc);
+});
+</script>
+
+<style scoped>
+.hero-container {
+  background-color: #2f3334;
+  width: 100%;
+  height: auto;
+  padding: 20px;
+  z-index: 1;
+}
+
+.hero-image img {
+  width: 100%;
+  height: auto;
+}
+
+@media (max-width: 900px) {
+  .hero-container {
+    padding: 10px;
   }
 
-  .hide-on-small-screen {
-    display: none;
+  .hero-image img {
+    height: auto;
+    max-height: 250px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-container {
+    padding: 10px;
+  }
+
+  .hero-image img {
+    height: auto;
+    max-height: 200px;
   }
 }
 </style>
