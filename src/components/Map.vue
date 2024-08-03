@@ -5,6 +5,7 @@
       margin-top: 30px;
       text-align: left;
       font-weight: bold;
+      padding: 0 2rem;
     "
   >
     周邊地圖
