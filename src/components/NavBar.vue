@@ -39,7 +39,7 @@
   align-items: center;
   height: 40px;
   gap: 20px;
-  margin: 0.5rem 2rem;
+  margin: 0.75rem 2rem;
 }
 
 .link-container {
@@ -47,7 +47,7 @@
   align-items: center;
   height: 40px;
   gap: 20px;
-  margin: 0.5rem 2rem;
+  margin: 0.75rem 2rem;
   color: #fca421;
 }
 
@@ -68,7 +68,6 @@
 .logo,
 .logo-text {
   height: 30px;
-  opacity: 1;
   width: auto;
 }
 
