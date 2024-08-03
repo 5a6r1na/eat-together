@@ -5,24 +5,38 @@
       v-model="selectedTab"
       @tab-click="handleTabClick"
       class="tabs-container"
+      style="font-color: "
     >
       <el-tab-pane label="台中火車站" name="1"></el-tab-pane>
       <el-tab-pane label="民權地下道" name="2"></el-tab-pane>
       <el-tab-pane label="光復國小" name="3"></el-tab-pane>
     </el-tabs>
     <div class="tags-container">
-      <el-button style="background-color: #409eff; color: white"
-        >衛生</el-button
+      <el-button
+        v-for="option in typeOptions"
+        :key="option.value"
+        :style="{ backgroundColor: option.color, color: 'white' }"
+        @click="filterEvents(option.value)"
       >
-      <el-button style="background-color: #fc8686; color: white"
-        >醫療</el-button
+        {{ option.label }}
+      </el-button>
+    </div>
+    <!-- sabrina{8/3}: registered event list toggle section -->
+    <div v-if="selectedTag" class="events-section">
+      <li
+        v-for="event in filteredEvents"
+        :key="event.id"
+        :style="{ backgroundColor: event.backgroundColor }"
       >
-      <el-button style="background-color: #67c23a; color: white"
-        >保暖</el-button
-      >
-      <el-button style="background-color: #fca421; color: white"
-        >食物</el-button
-      >
+        <div>
+          {{ event.start.split("T")[0] }}
+          {{ event.start.split("T")[1].slice(0, 5) }}
+          {{ itemMap[event.extendedProps.item] || event.extendedProps.item }}
+        </div>
+      </li>
+      <li v-if="filteredEvents.length === 0" class="no-events">
+        暫無已登記物資
+      </li>
     </div>
   </div>
   <div class="demo-app">
@@ -32,50 +46,43 @@
           <h2>已登記物資</h2>
           <!-- sabrina{7/21}: move tags to sidebar -->
           <div class="sidebar-tags">
-            <el-button style="background-color: #409eff; color: white"
-              >衛生</el-button
+            <el-button
+              v-for="option in typeOptions"
+              :key="option.value"
+              :style="{ backgroundColor: option.color, color: 'white' }"
+              @click="filterEvents(option.value)"
             >
-            <el-button style="background-color: #fc8686; color: white"
-              >醫療</el-button
-            >
-            <el-button style="background-color: #67c23a; color: white"
-              >保暖</el-button
-            >
-            <el-button style="background-color: #fca421; color: white"
-              >食物</el-button
-            >
+              {{ option.label }}
+            </el-button>
           </div>
         </div>
-        <div class="demo-app-sidebar-section">
+        <div>
           <h2>所有物資 ({{ calendarOptions.events.length }})</h2>
           <div
             v-for="(eventsByType, typeLabel) in groupedEventsByType"
             :key="typeLabel"
           >
             <h2>{{ typeLabel }} ({{ eventsByType.length }})</h2>
-            <ul>
-              <li
-                class="sidebar-event"
-                v-for="event in eventsByType"
-                :key="event.id"
-                :style="{ backgroundColor: event.backgroundColor }"
-              >
-                <div>
-                  {{ event.start.split("T")[0] }}
-                  {{ event.start.split("T")[1].slice(0, 5) }}
-                  {{
-                    itemMap[event.extendedProps.item] ||
-                    event.extendedProps.item
-                  }}
-                </div>
-              </li>
-            </ul>
+            <li
+              class="sidebar-event"
+              v-for="event in eventsByType"
+              :key="event.id"
+              :style="{ backgroundColor: event.backgroundColor }"
+            >
+              <div>
+                {{ event.start.split("T")[0] }}
+                {{ event.start.split("T")[1].slice(0, 5) }}
+                {{
+                  itemMap[event.extendedProps.item] || event.extendedProps.item
+                }}
+              </div>
+            </li>
           </div>
         </div>
       </div>
 
       <el-dialog v-model="dialogVisible" width="500px">
-        <p style="font-size: 2em">發放表單</p>
+        <p style="font-size: 2em; color: #000000">發放表單</p>
         <div class="formContent">
           <el-form
             :model="form"
@@ -118,13 +125,6 @@
                 autocomplete="off"
               />
             </el-form-item>
-            <!-- <el-form-item label="物資內容" :label-width="formLabelWidth" prop="item">
-            <el-input
-              v-model="form.item"
-              placeholder="請描述物資內容 （例：素菜便當）"
-              autocomplete="off"
-            />
-          </el-form-item> -->
             <!-- sabrina{6/1}: item dropdown -->
             <el-form-item
               label="物資類型"
@@ -156,7 +156,7 @@
                   clearable
                 >
                   <el-option
-                    v-for="option in itemOptions"
+                    v-for="option in filteredOptions"
                     :key="option.value"
                     :label="option.label"
                     :value="option.value"
@@ -306,29 +306,33 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Delete } from "@element-plus/icons-vue";
-// import { INITIAL_EVENTS, createEventId } from "../event-utils";
 import { db } from "../firebase";
+// import { saveOptionsToFirebase } from "../firebase/createOptions";
 import {
   collection,
   onSnapshot,
   addDoc,
+  getDocs,
   doc,
   deleteDoc,
 } from "firebase/firestore";
+import { useEventStore } from "../stores/eventStore";
 
+const store = useEventStore();
 const fullCalendar = ref(null);
 const currentYear = ref();
 const currentMonth = ref();
 const currentEvents = ref([]);
-const currentEvent = ref(null);
 const cardStyle = ref({});
 const formLabelWidth = "100px";
 const dialogVisible = ref(false);
 const cardVisible = ref(false);
-const cardHovered = ref(false);
-const selectedTab = ref("1");
+const selectedTab = ref(store.selectedTab);
 const screenWidth = ref(window.innerWidth);
 const formClick = ref(false);
+const selectedTag = ref("");
+const filteredEvents = ref([]);
+const itemOptions = ref([]);
 
 // sabrina{7/18}: sidebar events
 const groupedEventsByType = computed(() => {
@@ -391,53 +395,28 @@ const form = ref({
 
 // sabrina{6/1}: item dropdown
 const typeOptions = [
-  { label: "食物", value: "food" },
-  { label: "保暖", value: "clothes" },
-  { label: "衛生", value: "hygiene" },
-  { label: "醫療", value: "medical" },
+  { label: "衛生", value: "hygiene", color: "#409eff" },
+  { label: "醫療", value: "medical", color: "#fc8686" },
+  { label: "保暖", value: "clothes", color: "#67c23a" },
+  { label: "食物", value: "food", color: "#fca421" },
 ];
 
-// sabrina{6/1}: item dropdown
-const itemOptions = computed(() => {
-  switch (form.value.type) {
-    case "food":
-      return [
-        { label: "包子", value: "bun" },
-        { label: "麵包", value: "bread" },
-        { label: "便當", value: "bento" },
-        { label: "水果", value: "fruit" },
-      ];
-    case "clothes":
-      return [
-        { label: "短袖上衣", value: "shirt" },
-        { label: "長袖上衣", value: "blouse" },
-      ];
-    case "hygiene":
-      return [
-        { label: "牙刷", value: "toothbrush" },
-        { label: "牙膏", value: "toothpaste" },
-        { label: "衛生棉", value: "pads" },
-        { label: "衛生紙", value: "tissue" },
-        { label: "棉花棒", value: "cottonswab" },
-      ];
-    case "medical":
-      return [{ label: "診療", value: "doctor" }];
-    default:
-      return [
-        { label: "包子", value: "bun" },
-        { label: "麵包", value: "bread" },
-        { label: "便當", value: "bento" },
-        { label: "水果", value: "fruit" },
-        { label: "短袖上衣", value: "shirt" },
-        { label: "長袖上衣", value: "blouse" },
-        { label: "牙刷", value: "toothbrush" },
-        { label: "牙膏", value: "toothpaste" },
-        { label: "衛生棉", value: "pads" },
-        { label: "衛生紙", value: "tissue" },
-        { label: "棉花棒", value: "cottonswab" },
-        { label: "診療", value: "doctor" },
-      ];
-  }
+const fetchOptions = async () => {
+  const optionsCollection = collection(db, "itemOptions");
+  const optionsSnapshot = await getDocs(optionsCollection);
+  const optionsList = optionsSnapshot.docs.map((doc) => {
+    return { type: doc.id, items: doc.data().items };
+  });
+
+  itemOptions.value = optionsList;
+};
+
+const filteredOptions = computed(() => {
+  const selectedType = form.value.type;
+  const selectedOption = itemOptions.value.find(
+    (option) => option.type === selectedType
+  );
+  return selectedOption ? selectedOption.items : [];
 });
 
 // sabrina{7/21}: event type mapping
@@ -447,10 +426,14 @@ const typeMap = typeOptions.reduce((acc, option) => {
 }, {});
 
 // sabrina{7/21}: event item mapping
-const itemMap = itemOptions.value.reduce((acc, option) => {
-  acc[option.value] = option.label;
-  return acc;
-}, {});
+const itemMap = computed(() => {
+  return itemOptions.value.reduce((acc, option) => {
+    option.items.forEach((item) => {
+      acc[item.value] = item.label;
+    });
+    return acc;
+  }, {});
+});
 
 const calendarOptions = reactive({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
@@ -490,8 +473,9 @@ const calendarOptions = reactive({
     // sabrina{7/21}: note-fullcalendar month index starts from 0
     currentMonth.value = today.getMonth();
     currentYear.value = today.getFullYear();
-
     fetchEvents(currentYear.value, currentMonth.value, selectedTab.value);
+    // saveOptionsToFirebase();
+    fetchOptions();
   },
   eventTimeFormat: {
     hour: "numeric",
@@ -547,6 +531,20 @@ function closeDialog() {
 function closeCard() {
   cardVisible.value = false;
 }
+
+// sabrina{8/3}
+const filterEvents = (tag) => {
+  if (selectedTag.value === tag) {
+    // Deselect the tag if the same button is clicked again
+    selectedTag.value = "";
+    filteredEvents.value = [];
+  } else {
+    selectedTag.value = tag;
+    filteredEvents.value = calendarOptions.events.filter(
+      (event) => event.extendedProps.type === tag
+    );
+  }
+};
 
 // handle date selection
 function handleDateSelect(selectInfo) {
@@ -751,10 +749,6 @@ function resetForm() {
   };
 }
 
-function handleEvents(events) {
-  currentEvents.value = events;
-}
-
 function handleClickOutside(event) {
   if (!event.target.closest(".box-card")) {
     closeCard();
@@ -798,10 +792,9 @@ function fetchEvents(year, month, selectedTab) {
   });
 }
 
-// sabrina{7/21}: fetch event when switch tab
+// sabrina{8/1}: update selectedTab in store
 function handleTabClick(tab) {
-  selectedTab.value = tab.props.name;
-  fetchEvents(currentYear.value, currentMonth.value, selectedTab.value);
+  store.updateSelectedTab(tab.props.name);
 }
 
 const updateScreenWidth = () => {
@@ -811,7 +804,6 @@ const updateScreenWidth = () => {
 onMounted(() => {
   document.addEventListener("click", handleClickOutside);
   window.addEventListener("resize", updateScreenWidth);
-  // fetchEvents();
 });
 
 onBeforeUnmount(() => {
@@ -833,47 +825,64 @@ watch(
     }
   }
 );
+
+// sabrina{8/1}: fetch event when selectedTab in store is updated
+watch(
+  () => store.selectedTab,
+  (newTab) => {
+    selectedTab.value = newTab;
+    fetchEvents(currentYear.value, currentMonth.value, newTab);
+  }
+);
 </script>
 
 <style scoped>
 .demo-app {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  padding: 0;
+  margin: 0 2rem;
+  background-color: white;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.container {
+  gap: 20px;
 }
 
 .menu-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 10px 20px;
+  margin: 10px 2rem;
 }
 
 .sidebar-tags {
   display: flex;
   padding-bottom: 5px;
-  /* margin-left: 40px; */
   color: #fff;
 }
 
+/* sabrina{8/3}: calendar, sidebar layout fix and scroll bar*/
 .demo-app-main {
-  width: 100%;
-  max-width: 1200px;
+  flex: 3;
   margin: 20px auto;
 }
 
-.demo-app-calendar {
-  width: 100%;
-  max-width: 1200px;
-}
-
 .demo-app-sidebar {
+  flex: 1;
   padding: 10px;
-  margin-right: 20px;
   background-color: #f8f9fa;
+  max-height: 95vh;
+  overflow-y: auto;
+  border-radius: 8px;
 }
 
+.demo-app-sidebar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 /* sabrina{7/21}: sidebar event style */
 .sidebar-event {
   line-height: 1.5;
@@ -881,6 +890,7 @@ watch(
   color: #ffffff;
   margin: 10px;
   border-radius: 2px;
+  padding: 2px 0px;
 }
 
 .dialog-footer {
@@ -904,6 +914,10 @@ watch(
   transition: transform 0.3s ease-in-out;
 }
 
+.events-section {
+  display: none;
+}
+
 :deep(.el-tabs__active-bar) {
   background-color: #fca421;
 }
@@ -914,6 +928,16 @@ watch(
 
 :deep(.el-tabs__item.is-active) {
   color: #fca421;
+}
+
+:deep(.el-tabs__item) {
+  color: white;
+}
+
+:deep(.tags-container .el-button) {
+  --el-button-active-border-color: #fca421;
+  border-color: #2f3334;
+  border: none;
 }
 
 /* sabrina{7/21}: hide tabbar tags */
@@ -947,6 +971,7 @@ watch(
     flex-direction: column;
     align-items: center;
     margin-bottom: 0px;
+    margin-top: 3em;
   }
 
   .tags-container {
@@ -955,6 +980,7 @@ watch(
     gap: 10px;
     margin-top: 0px;
     margin-left: 0px;
+    margin-bottom: 10px;
   }
 
   :deep(.el-dialog) {
@@ -1010,6 +1036,20 @@ watch(
 }
 
 @media (max-width: 480px) {
+  .tags-container {
+    margin-bottom: 10px;
+  }
+
+  .menu-container {
+    margin-top: 10px;
+    margin-bottom: 0px;
+  }
+
+  :deep(.tags-container .el-button) {
+    --el-button-active-border-color: #fca421;
+    border-color: #2f3334;
+    border: #fca421;
+  }
   .custom-event-name,
   .custom-event-org,
   .custom-event-item,
@@ -1018,6 +1058,23 @@ watch(
   .custom-event-date,
   .custom-event-time {
     font-size: 12px;
+  }
+
+  /* sabrina{8/3} */
+  .events-section {
+    display: block;
+    margin-bottom: 10px;
+    width: auto;
+    max-height: 100px; /* Set the maximum height for the section */
+    overflow-y: auto; /* Enable vertical scrolling */
+  }
+
+  .events-section li {
+    line-height: 1.5;
+    font-size: 14px;
+    color: #ffffff;
+    padding: 2px 65px;
+    border-radius: 2px;
   }
 }
 </style>
