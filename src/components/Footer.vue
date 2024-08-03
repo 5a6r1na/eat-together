@@ -5,7 +5,7 @@
       <!-- Left side: Image -->
       <div>
         <img
-          class="h-80 w-auto m-5"
+          class="h-80 w-auto m-4"
           src="/img/full-logo.png"
           alt="Footer Image"
         />
@@ -140,6 +140,10 @@ a:hover {
   .mid-container p,
   .right-container p {
     font-size: 0.875rem;
+  }
+
+  .social-icons {
+    justify-content: flex-start;
   }
 }
 </style>
