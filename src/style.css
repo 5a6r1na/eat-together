@@ -17,6 +17,12 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+p {
+  font-size: larger;
+  color: white;
+  text-decoration: inherit;
+}
+
 a {
   font-weight: 500;
   color: #1a1a1a;
@@ -37,18 +43,18 @@ h1 {
   font-size: 3.2em;
   line-height: 1.1;
   color: #fca421;
-  margin: 10px;
+  /* margin: 10px; */
 }
 
 h2 {
   line-height: 1.1;
-  color: #000000;
+  color: #1a1a1a;
   margin: 10px;
 }
 
 li {
   line-height: 1.1;
-  color: #000000;
+  color: #1a1a1a;
   margin: 10px;
 }
 
@@ -63,9 +69,9 @@ button {
   cursor: pointer;
   transition: border-color 0.25s;
 }
-button:hover {
+/* button:hover {
   border-color: #646cff;
-}
+} */
 button:focus,
 button:focus-visible {
   /* outline: 2px auto -webkit-focus-ring-color; */
@@ -78,8 +84,13 @@ button:focus-visible {
 #app {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
+  /* padding: 0 2rem; */
   text-align: center;
+  background-color: #2f3334;
+}
+
+body {
+  background-color: #fca421;
 }
 
 @media (prefers-color-scheme: light) {
