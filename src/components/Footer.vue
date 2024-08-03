@@ -118,7 +118,7 @@ a:hover {
   }
 
   .social-icons {
-    justify-content: center;
+    justify-content: flex-start;
   }
 }
 
