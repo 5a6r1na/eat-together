@@ -533,7 +533,7 @@ function closeCard() {
 }
 
 // sabrina{8/3}
-const filterEvents = (tag) => {
+function filterEvents(tag) {
   if (selectedTag.value === tag) {
     // Deselect the tag if the same button is clicked again
     selectedTag.value = "";
@@ -544,7 +544,7 @@ const filterEvents = (tag) => {
       (event) => event.extendedProps.type === tag
     );
   }
-};
+}
 
 // handle date selection
 function handleDateSelect(selectInfo) {
@@ -832,6 +832,7 @@ watch(
   (newTab) => {
     selectedTab.value = newTab;
     fetchEvents(currentYear.value, currentMonth.value, newTab);
+    filterEvents(selectedTag.value);
   }
 );
 </script>
