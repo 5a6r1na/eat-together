@@ -5,7 +5,6 @@
       v-model="selectedTab"
       @tab-click="handleTabClick"
       class="tabs-container"
-      style="font-color: "
     >
       <el-tab-pane label="台中火車站" name="1"></el-tab-pane>
       <el-tab-pane label="民權地下道" name="2"></el-tab-pane>
@@ -122,6 +121,7 @@
               <el-input
                 v-model="form.phone"
                 placeholder="請填寫手機號碼（例：0912345678）"
+                maxlength="10"
                 autocomplete="off"
               />
             </el-form-item>
@@ -395,10 +395,10 @@ const form = ref({
 
 // sabrina{6/1}: item dropdown
 const typeOptions = [
-  { label: "衛生", value: "hygiene", color: "#409eff" },
-  { label: "醫療", value: "medical", color: "#fc8686" },
-  { label: "保暖", value: "clothes", color: "#67c23a" },
-  { label: "食物", value: "food", color: "#fca421" },
+  { label: "衛生", value: "hygiene", color: "#437A89" },
+  { label: "醫療", value: "medical", color: "#B9A44C" },
+  { label: "保暖", value: "clothes", color: "#657B4F" },
+  { label: "食物", value: "food", color: "#D45113" },
 ];
 
 const fetchOptions = async () => {
@@ -501,7 +501,24 @@ const calendarOptions = reactive({
 const rules = reactive({
   name: [{ required: true, message: "請填寫姓名", trigger: "blur" }],
   org: [{ required: true, message: "請填寫單位名稱", trigger: "blur" }],
-  phone: [{ required: true, message: "請填寫手機號碼", trigger: "blur" }],
+  phone: [
+    { required: true, message: "請填寫手機號碼", trigger: "blur" },
+    {
+      validator: (rule, value, callback) => {
+        const phoneRegex = /^09\d{8}$/;
+        if (!value) {
+          callback(new Error("請輸入連絡電話"));
+        } else if (/\s/.test(value)) {
+          callback(new Error("連絡電話不可包含空白"));
+        } else if (!phoneRegex.test(value)) {
+          callback(new Error("請輸入有效的手機號碼"));
+        } else {
+          callback();
+        }
+      },
+      trigger: "blur",
+    },
+  ],
   item: [{ required: true, message: "請描述物資內容", trigger: "blur" }],
   quantity: [
     { required: true, message: "請填寫提供物資份數", trigger: "blur" },
@@ -700,14 +717,21 @@ const handleSubmit = () => {
       const formattedDate = formContent.date.toLocaleDateString("en-CA", {
         timeZone: "Asia/Taipei",
       });
+
+      // Phone number validation
+      const phoneRegex = /^09\d{8}$/;
+      if (!phoneRegex.test(formContent.phone)) {
+        console.log("聯絡電話格式錯誤");
+        return;
+      }
       const startTime = `${formattedDate}T${formContent.time}`;
 
       // Define the mapping between types and colors
       const typeColorMap = {
-        food: "#fca421",
-        clothes: "#67C23A",
-        hygiene: "#409EFF",
-        medical: "#fc8686",
+        food: "#D45113",
+        clothes: "#657B4F",
+        hygiene: "#437A89",
+        medical: "#B9A44C",
       };
 
       // Get the color based on the type
@@ -939,6 +963,17 @@ watch(
   --el-button-active-border-color: #fca421;
   border-color: #2f3334;
   border: none;
+}
+
+:deep(.el-button--primary) {
+  --el-button-bg-color: #fca421;
+  --el-button-border-color: #fca421;
+  --el-button-active-color: #fca421;
+  --el-button-active-bg-color: #fca421;
+  --el-button-disabled-bg-color: #fca421;
+  --el-button-disabled-border-color: #fca421;
+  --el-button-hover-bg-color: #fca421;
+  --el-button-active-border-color: #fca421;
 }
 
 /* sabrina{7/21}: hide tabbar tags */
