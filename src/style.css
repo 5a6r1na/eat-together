@@ -23,6 +23,12 @@ p {
   text-decoration: inherit;
 }
 
+@media (max-width: 480px) {
+  p {
+    font-size: 16px;
+  }
+}
+
 a {
   font-weight: 500;
   color: #1a1a1a;
