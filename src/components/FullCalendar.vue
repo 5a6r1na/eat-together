@@ -12,7 +12,7 @@
     </el-tabs>
     <div class="tags-container">
       <el-button
-        v-for="option in typeOptions"
+        v-for="option in TYPE_OPTIONS"
         :key="option.value"
         :style="{ backgroundColor: option.color, color: 'white' }"
         @click="filterEvents(option.value)"
@@ -20,6 +20,7 @@
         {{ option.label }}
       </el-button>
     </div>
+
     <!-- sabrina{8/3}: registered event list toggle section -->
     <div v-if="selectedTag" class="events-section">
       <li
@@ -46,7 +47,7 @@
           <!-- sabrina{7/21}: move tags to sidebar -->
           <div class="sidebar-tags">
             <el-button
-              v-for="option in typeOptions"
+              v-for="option in TYPE_OPTIONS"
               :key="option.value"
               :style="{ backgroundColor: option.color, color: 'white' }"
               @click="filterEvents(option.value)"
@@ -79,7 +80,6 @@
           </div>
         </div>
       </div>
-
       <el-dialog v-model="dialogVisible" width="500px">
         <p style="font-size: 2em; color: #000000">發放表單</p>
         <div class="formContent">
@@ -137,7 +137,7 @@
                 clearable
               >
                 <el-option
-                  v-for="option in typeOptions"
+                  v-for="option in TYPE_OPTIONS"
                   :key="option.value"
                   :label="option.label"
                   :value="option.value"
@@ -201,6 +201,7 @@
                 v-model="form.date"
                 type="date"
                 placeholder="請選擇日期"
+                :editable="false"
                 :disabled-date="disabledDate"
                 clearable
               />
@@ -217,6 +218,7 @@
                 step="00:15"
                 end="22:30"
                 placeholder="請選擇時間"
+                :editable="false"
                 clearable
               />
             </el-form-item>
@@ -307,12 +309,11 @@ import interactionPlugin from "@fullcalendar/interaction";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Delete } from "@element-plus/icons-vue";
 import { db } from "../firebase";
-// import { saveOptionsToFirebase } from "../firebase/createOptions";
+import { TYPE_OPTIONS, ITEM_OPTIONS } from "../dropdownOptions";
 import {
   collection,
   onSnapshot,
   addDoc,
-  getDocs,
   doc,
   deleteDoc,
 } from "firebase/firestore";
@@ -332,7 +333,6 @@ const screenWidth = ref(window.innerWidth);
 const formClick = ref(false);
 const selectedTag = ref("");
 const filteredEvents = ref([]);
-const itemOptions = ref([]);
 
 // sabrina{7/18}: sidebar events
 const groupedEventsByType = computed(() => {
@@ -393,47 +393,35 @@ const form = ref({
   time: "",
 });
 
-// sabrina{6/1}: item dropdown
-const typeOptions = [
-  { label: "衛生", value: "hygiene", color: "#437A89" },
-  { label: "醫療", value: "medical", color: "#B9A44C" },
-  { label: "保暖", value: "clothes", color: "#657B4F" },
-  { label: "食物", value: "food", color: "#D45113" },
-];
-
-const fetchOptions = async () => {
-  const optionsCollection = collection(db, "itemOptions");
-  const optionsSnapshot = await getDocs(optionsCollection);
-  const optionsList = optionsSnapshot.docs.map((doc) => {
-    return { type: doc.id, items: doc.data().items };
-  });
-
-  itemOptions.value = optionsList;
-};
-
 const filteredOptions = computed(() => {
   const selectedType = form.value.type;
-  const selectedOption = itemOptions.value.find(
-    (option) => option.type === selectedType
-  );
-  return selectedOption ? selectedOption.items : [];
+  const selectedOption = ITEM_OPTIONS[selectedType];
+  return selectedOption || [];
 });
 
 // sabrina{7/21}: event type mapping
-const typeMap = typeOptions.reduce((acc, option) => {
+const typeMap = TYPE_OPTIONS.reduce((acc, option) => {
   acc[option.value] = option.label;
   return acc;
 }, {});
 
 // sabrina{7/21}: event item mapping
-const itemMap = computed(() => {
-  return itemOptions.value.reduce((acc, option) => {
-    option.items.forEach((item) => {
-      acc[item.value] = item.label;
-    });
+
+const itemMap = Object.values(ITEM_OPTIONS)
+  .flat()
+  .reduce((acc, item) => {
+    acc[item.value] = item.label;
     return acc;
   }, {});
-});
+
+// const itemMap = computed(() => {
+//   return Object.values(DROPDOWN).reduce((acc, option) => {
+//     option.forEach((item) => {
+//       acc[item.value] = item.label;
+//     });
+//     return acc;
+//   }, {});
+// });
 
 const calendarOptions = reactive({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
@@ -474,8 +462,6 @@ const calendarOptions = reactive({
     currentMonth.value = today.getMonth();
     currentYear.value = today.getFullYear();
     fetchEvents(currentYear.value, currentMonth.value, selectedTab.value);
-    // saveOptionsToFirebase();
-    fetchOptions();
   },
   eventTimeFormat: {
     hour: "numeric",
@@ -737,7 +723,7 @@ const handleSubmit = () => {
       // Get the color based on the type
       const backgroundColor = typeColorMap[formContent.type];
 
-      const docRef = addDoc(collection(db, "calEvent"), {
+      addDoc(collection(db, "calEvent"), {
         start: startTime,
         backgroundColor: backgroundColor,
         name: formContent.name,
@@ -747,13 +733,42 @@ const handleSubmit = () => {
         quantity: formContent.quantity,
         type: formContent.type,
         location: formContent.location,
-      });
-      console.log("Document written with ID: ", docRef.id);
-      resetForm();
+      })
+        .then((docRef) => {
+          resetForm();
+          // Show success dialog using ElMessageBox
+          const successDialogMessage = `
+          <h2>表單細節:<br>
+              姓名: ${formContent.name}<br>
+              聯絡電話: ${formContent.org}<br>
+              地點: ${formContent.location}<br>
+              物資類型: ${typeMap[formContent.type] || "unknown"}<br>
+              物資內容: ${itemMap[formContent.item] || "mapping failed"}<br>
+              份數: ${formContent.quantity}<br>
+              <br>
+              請記下您填寫的聯絡電話，以便於取消登記時使用，再次感謝您填寫表單!</h2> `;
 
-      dialogVisible.value = false;
+          ElMessageBox.alert(successDialogMessage, "登記成功", {
+            dangerouslyUseHTMLString: true,
+            showConfirmButton: false,
+            confirmButtonText: "確認",
+            callback: () => {
+              // ElMessage({
+              //   type: "success",
+              //   message: "活動成功創建",
+              // });
+            },
+          });
+          dialogVisible.value = false;
+        })
+        .catch((error) => {
+          console.error("Error adding document: ", error);
+          ElMessage({
+            type: "error",
+            message: "表單提交時出錯，請檢查網路狀態後重新嘗試，謝謝您的配合",
+          });
+        });
     } else {
-      const formContent = form.value;
       console.log("Form validation failed");
     }
   });
@@ -941,6 +956,10 @@ watch(
 
 .events-section {
   display: none;
+}
+
+.el-dialog {
+  z-index: 1000; /* Ensure the dialog is above other elements */
 }
 
 :deep(.el-tabs__active-bar) {
