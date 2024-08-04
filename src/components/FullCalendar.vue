@@ -546,6 +546,9 @@ function filterEvents(tag) {
     filteredEvents.value = calendarOptions.events.filter(
       (event) => event.extendedProps.type === tag
     );
+
+    // sabrina{8/4}: sort by event date
+    filteredEvents.value.sort((a, b) => new Date(a.start) - new Date(b.start));
   }
 }
 
