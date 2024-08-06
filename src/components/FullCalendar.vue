@@ -1,6 +1,10 @@
 <template>
   <!-- <Aside></Aside> -->
   <div class="menu-container">
+    <button class="form-button form-button-mobile" @click="toggleDialog()">
+      我要發放物資
+      <img src="/img/handout.png" style="width: 2.5vh" />
+    </button>
     <el-tabs
       v-model="selectedTab"
       @tab-click="handleTabClick"
@@ -10,6 +14,10 @@
       <el-tab-pane label="民權地下道" name="2"></el-tab-pane>
       <el-tab-pane label="光復國小" name="3"></el-tab-pane>
     </el-tabs>
+    <button class="form-button form-button-desktop" @click="toggleDialog()">
+      我要發放物資
+      <img src="/img/handout.png" style="width: 2.5vh" />
+    </button>
     <div class="tags-container">
       <el-button
         v-for="option in TYPE_OPTIONS"
@@ -43,6 +51,10 @@
     <div class="container" style="display: flex">
       <div class="demo-app-sidebar">
         <div class="demo-app-sidebar-section">
+          <!-- <button class="form-button" @click="toggleDialog()">
+            我要發放物資
+            <img src="/img/handout.png" style="width: 2.5vh" />
+          </button> -->
           <h2>已登記物資</h2>
           <!-- sabrina{7/21}: move tags to sidebar -->
           <div class="sidebar-tags">
@@ -425,21 +437,21 @@ const itemMap = Object.values(ITEM_OPTIONS)
 
 const calendarOptions = reactive({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
-  customButtons: {
-    formButton: {
-      text: "登記發放",
-      click: function () {
-        // sabrina{7/21}: add formClick to check dialog trigger position
-        formClick.value = true;
-        toggleDialog();
-      },
-    },
-  },
+  // customButtons: {
+  //   formButton: {
+  //     text: "登記發放",
+  //     click: function () {
+  //       // sabrina{7/21}: add formClick to check dialog trigger position
+  //       formClick.value = true;
+  //       toggleDialog();
+  //     },
+  //   },
+  // },
   headerToolbar: {
     left: "prev,next,today",
     center: "title",
     // right: "formButton dayGridMonth,timeGridWeek,timeGridDay",
-    right: "formButton",
+    right: "",
   },
   buttonText: {
     today: "今天",
@@ -897,7 +909,7 @@ watch(
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 10px 2rem;
+  margin: 2rem 2rem;
 }
 
 .sidebar-tags {
@@ -932,7 +944,7 @@ watch(
   font-size: 14px;
   color: #ffffff;
   margin: 10px;
-  border-radius: 2px;
+  border-radius: 6px;
   padding: 2px 0px;
 }
 
@@ -979,6 +991,7 @@ watch(
 
 :deep(.el-tabs__item) {
   color: white;
+  font-size: 16px;
 }
 
 :deep(.tags-container .el-button) {
@@ -1003,10 +1016,70 @@ watch(
   display: none;
 }
 
-@media (max-width: 900px) {
+/* .toggle-button {
+  padding: 1vh 6vh;
+  background-color: #fca140;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: large;
+  margin-bottom: 20px;
+  transition: background-color 0.3s, transform 0.1s;
+}
+
+.toggle-button:hover {
+  background-color: #8c580f;
+}
+
+.toggle-button:active {
+  transform: scale(0.95);
+} */
+
+.form-button {
+  display: flex;
+  align-items: center; /* Center vertically */
+  justify-content: center; /* Center horizontally */
+  gap: 0.5vh;
+  padding: 1vh 6vh;
+  background-color: #508d4e;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 20px;
+  transition: background-color 0.3s, transform 0.1s;
+  animation: pulse 2s infinite; /* Adding the pulsing animation */
+}
+
+.form-button:hover {
+  background-color: #e8921a; /* Slightly darker shade for hover effect */
+}
+
+.form-button:active {
+  transform: scale(0.95); /* Slightly shrink the button on click */
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(252, 161, 64, 0.7);
+  }
+  70% {
+    transform: scale(1.02);
+    box-shadow: 0 0 20px 10px rgba(252, 161, 64, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(252, 161, 64, 0);
+  }
+}
+
+.form-button-mobile {
+  display: none;
+}
+
+/* @media (max-width: 900px) {
   .demo-app-sidebar {
     display: none;
   }
+
   .demo-app-main {
     padding: 0 10px;
   }
@@ -1025,7 +1098,6 @@ watch(
   }
 
   .menu-container {
-    /* max-width: 100%; */
     flex-direction: column;
     align-items: center;
     margin-bottom: 0px;
@@ -1056,7 +1128,6 @@ watch(
     font-size: 0.75em;
   }
 
-  /* .fc .fc-daygrid-body-unbalanced */
   :deep(.fc-daygrid-day-events) {
     min-height: 2em;
     position: relative;
@@ -1089,24 +1160,88 @@ watch(
 .custom-event-location,
 .custom-event-date,
 .custom-event-time {
-  /* margin-bottom: 5px; */
   font-size: 12px;
-}
+} */
 
 @media (max-width: 480px) {
-  .tags-container {
-    margin-bottom: 10px;
+  .demo-app-sidebar {
+    display: none;
+  }
+
+  .demo-app-main {
+    padding: 0 10px;
+  }
+
+  .dialog-title {
+    font-size: 18px;
+  }
+
+  .demo-app-calendar {
+    width: 100%;
+    height: 500px;
+  }
+
+  .dialogMaxWidth {
+    max-width: 90%;
+  }
+
+  :deep(.el-tabs__item) {
+    font-size: 14px;
+  }
+
+  .form-button-mobile {
+    display: flex;
+  }
+  .form-button-desktop {
+    display: none;
+  }
+
+  .form-button {
+    padding: 1vh 6vh;
+    font-size: 16px;
+    margin: 1vh 0;
   }
 
   .menu-container {
+    flex-direction: column;
+    align-items: center;
     margin-top: 10px;
     margin-bottom: 0px;
+  }
+
+  .tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 10px 0px;
   }
 
   :deep(.tags-container .el-button) {
     --el-button-active-border-color: #fca421;
     border-color: #2f3334;
     border: #fca421;
+  }
+
+  :deep(.el-dialog) {
+    width: 90%;
+  }
+
+  :deep(.fc .fc-toolbar.fc-header-toolbar) {
+    margin-bottom: 1.5em;
+    font-size: 0.75em;
+  }
+
+  :deep(.fc-daygrid-day-events) {
+    min-height: 2em;
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .custom-dot {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
   }
   .custom-event-name,
   .custom-event-org,
