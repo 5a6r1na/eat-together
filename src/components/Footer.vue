@@ -105,7 +105,7 @@ a:hover {
   display: flex;
 }
 
-@media (max-width: 900px) {
+/* @media (max-width: 900px) {
   .footer-content {
     flex-direction: column;
     margin-left: 1rem;
@@ -120,16 +120,19 @@ a:hover {
   .social-icons {
     justify-content: flex-start;
   }
-}
+} */
 
 @media (max-width: 480px) {
   .footer-content {
+    flex-direction: column;
+    margin-left: 1rem;
     padding: 1rem 0.5rem;
   }
 
   .mid-container,
   .right-container {
     margin-top: 1rem;
+    text-align: left;
   }
 
   .mid-container h1,

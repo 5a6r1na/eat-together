@@ -43,7 +43,7 @@ onBeforeUnmount(() => {
   height: auto;
 }
 
-@media (max-width: 900px) {
+/* @media (max-width: 900px) {
   .hero-container {
     padding: 10px;
   }
@@ -52,7 +52,7 @@ onBeforeUnmount(() => {
     height: auto;
     max-height: 250px;
   }
-}
+} */
 
 @media (max-width: 480px) {
   .hero-container {
