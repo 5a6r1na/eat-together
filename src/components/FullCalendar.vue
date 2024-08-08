@@ -1041,6 +1041,7 @@ watch(
   gap: 0.5vh;
   padding: 1vh 6vh;
   background-color: #508d4e;
+  color: #ffffff;
   border-radius: 6px;
   font-weight: bold;
   font-size: 20px;
