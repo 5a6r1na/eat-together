@@ -1076,6 +1076,16 @@ watch(
   display: none;
 }
 
+.custom-event-name,
+.custom-event-org,
+.custom-event-item,
+.custom-event-quantity,
+.custom-event-location,
+.custom-event-date,
+.custom-event-time {
+  color: #ffffff;
+}
+
 /* @media (max-width: 900px) {
   .demo-app-sidebar {
     display: none;
