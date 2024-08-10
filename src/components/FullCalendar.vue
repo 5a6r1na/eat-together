@@ -291,14 +291,14 @@
             ></el-button>
           </div>
         </template>
-        <div class="text item">
-          <div class="custom-event-name">姓名：{{ cardData.name }}</div>
-          <div class="custom-event-org">單位：{{ cardData.org }}</div>
-          <div class="custom-event-item">物資內容：{{ cardData.item }}</div>
-          <div class="custom-event-quantity">份數：{{ cardData.quantity }}</div>
-          <div class="custom-event-location">地點：{{ cardData.location }}</div>
-          <div class="custom-event-date">日期：{{ cardData.date }}</div>
-          <div class="custom-event-time">時間：{{ cardData.time }}</div>
+        <div class="text-item">
+          <div class="card-event-name">姓名：{{ cardData.name }}</div>
+          <div class="card-event-org">單位：{{ cardData.org }}</div>
+          <div class="card-event-item">物資內容：{{ cardData.item }}</div>
+          <div class="card-event-quantity">份數：{{ cardData.quantity }}</div>
+          <div class="card-event-location">地點：{{ cardData.location }}</div>
+          <div class="card-event-date">日期：{{ cardData.date }}</div>
+          <div class="card-event-time">時間：{{ cardData.time }}</div>
         </div>
       </el-card>
     </div>
@@ -1084,6 +1084,21 @@ watch(
 .custom-event-date,
 .custom-event-time {
   color: #ffffff;
+  border-radius: 6px;
+  padding: 2px 0px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.card-event-name,
+.card-event-org,
+.card-event-item,
+.card-event-quantity,
+.card-event-location,
+.card-event-date,
+.card-event-time {
+  color: #000000;
+  font-size: 14px;
 }
 
 /* @media (max-width: 900px) {
@@ -1254,13 +1269,14 @@ watch(
     height: 15px;
     border-radius: 50%;
   }
-  .custom-event-name,
-  .custom-event-org,
-  .custom-event-item,
-  .custom-event-quantity,
-  .custom-event-location,
-  .custom-event-date,
-  .custom-event-time {
+
+  .card-event-name,
+  .card-event-org,
+  .card-event-item,
+  .card-event-quantity,
+  .card-event-location,
+  .card-event-date,
+  .card-event-time {
     font-size: 12px;
   }
 
