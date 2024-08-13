@@ -557,16 +557,18 @@ function closeCard() {
   cardVisible.value = false;
 }
 
-// sabrina{8/3}
+// sabrina{8/13}: filter past events
 function filterEvents(tag) {
   if (selectedTag.value === tag) {
     // Deselect the tag if the same button is clicked again
     selectedTag.value = "";
     filteredEvents.value = [];
   } else {
+    const now = new Date();
     selectedTag.value = tag;
     filteredEvents.value = calendarOptions.events.filter(
-      (event) => event.extendedProps.type === tag
+      (event) =>
+        event.extendedProps.type === tag && new Date(event.start) >= now
     );
 
     // sabrina{8/4}: sort by event date
