@@ -347,8 +347,18 @@ const selectedTag = ref("");
 const filteredEvents = ref([]);
 
 // sabrina{7/18}: sidebar events
+// sabrina{8/13}: filter past events
 const groupedEventsByType = computed(() => {
-  const grouped = calendarOptions.events.reduce((acc, event) => {
+  // Get the current date and time
+  const now = new Date();
+
+  // Filter out past events
+  const futureEvents = calendarOptions.events.filter((event) => {
+    return new Date(event.start) >= now;
+  });
+
+  // Group events by type
+  const grouped = futureEvents.reduce((acc, event) => {
     const typeValue = event.extendedProps.type || "unknown";
     const typeLabel = typeMap[typeValue] || "unknown";
     if (!acc[typeLabel]) {
@@ -358,7 +368,7 @@ const groupedEventsByType = computed(() => {
     return acc;
   }, {});
 
-  // sabrina{7/21}: sort events within each type group
+  // Sort events within each type group
   Object.keys(grouped).forEach((typeLabel) => {
     grouped[typeLabel].sort((a, b) => new Date(a.start) - new Date(b.start));
   });
