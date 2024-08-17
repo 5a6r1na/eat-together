@@ -43,4 +43,10 @@ const TYPE_OPTIONS = [
   { label: "食物", value: "food", color: "#D45113" },
 ];
 
-export { ITEM_OPTIONS, TYPE_OPTIONS };
+const LOCATION_OPTIONS = [
+  { label: "台中火車站", name: "1" },
+  { label: "民權地下道", name: "2" },
+  { label: "光復國小", name: "3" },
+];
+
+export { ITEM_OPTIONS, TYPE_OPTIONS, LOCATION_OPTIONS };
