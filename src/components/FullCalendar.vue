@@ -10,9 +10,12 @@
       @tab-click="handleTabClick"
       class="tabs-container"
     >
-      <el-tab-pane label="台中火車站" name="1"></el-tab-pane>
-      <el-tab-pane label="民權地下道" name="2"></el-tab-pane>
-      <el-tab-pane label="光復國小" name="3"></el-tab-pane>
+      <el-tab-pane
+        v-for="location in LOCATION_OPTIONS"
+        :key="location.name"
+        :label="location.label"
+        :name="location.name"
+      ></el-tab-pane>
     </el-tabs>
     <button class="form-button form-button-desktop" @click="toggleDialog()">
       我要發放物資
@@ -139,57 +142,6 @@
             </el-form-item>
             <!-- sabrina{6/1}: item dropdown -->
             <el-form-item
-              label="物資類型"
-              :label-width="formLabelWidth"
-              prop="type"
-            >
-              <el-select
-                v-model="form.type"
-                placeholder="請選擇物資類型"
-                clearable
-              >
-                <el-option
-                  v-for="option in TYPE_OPTIONS"
-                  :key="option.value"
-                  :label="option.label"
-                  :value="option.value"
-                />
-              </el-select>
-            </el-form-item>
-            <div v-if="shouldRenderItem">
-              <el-form-item
-                label="物資內容"
-                :label-width="formLabelWidth"
-                prop="item"
-              >
-                <el-select
-                  v-model="form.item"
-                  placeholder="請選擇物資內容"
-                  clearable
-                >
-                  <el-option
-                    v-for="option in filteredOptions"
-                    :key="option.value"
-                    :label="option.label"
-                    :value="option.value"
-                  />
-                </el-select>
-              </el-form-item>
-            </div>
-            <el-form-item
-              label="份數"
-              :label-width="formLabelWidth"
-              prop="quantity"
-            >
-              <el-input
-                v-model="form.quantity"
-                placeholder="請填寫提供物資份數（例：10）"
-                autocomplete="off"
-              >
-                <template #append>份</template>
-              </el-input>
-            </el-form-item>
-            <el-form-item
               label="地點"
               :label-width="formLabelWidth"
               prop="location"
@@ -234,6 +186,69 @@
                 clearable
               />
             </el-form-item>
+            <!-- sabrina{8/16}: dynamic form set items -->
+            <div v-for="(item, index) in form.set" :key="index">
+              <hr class="solid" style="margin-bottom: 20px" />
+              <el-form-item
+                :label="'物資類型'"
+                :label-width="formLabelWidth"
+                :prop="`set.${index}.type`"
+              >
+                <el-select
+                  v-model="item.type"
+                  placeholder="請選擇物資類型"
+                  clearable
+                >
+                  <el-option
+                    v-for="option in TYPE_OPTIONS"
+                    :key="option.value"
+                    :label="option.label"
+                    :value="option.value"
+                  />
+                </el-select>
+              </el-form-item>
+
+              <div v-if="shouldRenderItem(index)">
+                <el-form-item
+                  label="物資內容"
+                  :label-width="formLabelWidth"
+                  :prop="`set.${index}.item`"
+                >
+                  <el-select
+                    v-model="item.item"
+                    placeholder="請選擇物資內容"
+                    clearable
+                  >
+                    <el-option
+                      v-for="option in filteredOptions(index)"
+                      :key="option.value"
+                      :label="option.label"
+                      :value="option.value"
+                    />
+                  </el-select>
+                </el-form-item>
+              </div>
+
+              <el-form-item
+                label="份數"
+                :label-width="formLabelWidth"
+                :prop="`set.${index}.quantity`"
+              >
+                <el-input
+                  v-model="item.quantity"
+                  placeholder="請填寫提供物資份數（例：10）"
+                  autocomplete="off"
+                >
+                  <template #append>份</template>
+                </el-input>
+              </el-form-item>
+            </div>
+            <el-button type="primary" @click="addType" size="small"
+              >+</el-button
+            >
+            <el-button type="primary" @click="removeType" size="small"
+              >-</el-button
+            >
           </el-form>
         </div>
         <template #footer>
@@ -321,7 +336,11 @@ import interactionPlugin from "@fullcalendar/interaction";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Delete } from "@element-plus/icons-vue";
 import { db } from "../firebase";
-import { TYPE_OPTIONS, ITEM_OPTIONS } from "../dropdownOptions";
+import {
+  TYPE_OPTIONS,
+  ITEM_OPTIONS,
+  LOCATION_OPTIONS,
+} from "../dropdownOptions";
 import {
   collection,
   onSnapshot,
@@ -377,9 +396,10 @@ const groupedEventsByType = computed(() => {
 });
 
 // sabrina{6/1}: item dropdown
-const shouldRenderItem = computed(() => {
-  return form.value.type && form.value.type !== "";
-});
+// sabrina{8/16} update for dynamic form set
+const shouldRenderItem = (index) => {
+  return form.value.set[index].type !== "";
+};
 
 const disabledDate = (time) => {
   return time.getTime() < Date.now() - 86400000;
@@ -403,23 +423,36 @@ const cardPosition = reactive({
 });
 
 const formRef = ref(null);
+
+// sabrina{8/16}: update for dynaminc form set
 const form = ref({
   name: "",
   org: "",
   phone: "",
-  type: "",
-  item: "",
-  quantity: "",
   location: "",
   date: "",
   time: "",
+  set: [{ type: "", item: "", quantity: "" }],
 });
 
-const filteredOptions = computed(() => {
-  const selectedType = form.value.type;
+// sabrina{8/16}: add dynaminc form set
+const addType = () => {
+  form.value.set.push({ type: "", item: "", quantity: "" });
+};
+
+// sabrina{8/16}: remove dynaminc form set
+const removeType = () => {
+  if (form.value.set.length > 1) {
+    form.value.set.pop();
+  }
+};
+
+// sabrina{8/16}: update for dynaminc form set
+const filteredOptions = (index) => {
+  const selectedType = form.value.set[index].type;
   const selectedOption = ITEM_OPTIONS[selectedType];
   return selectedOption || [];
-});
+};
 
 // sabrina{7/21}: event type mapping
 const typeMap = TYPE_OPTIONS.reduce((acc, option) => {
@@ -435,6 +468,12 @@ const itemMap = Object.values(ITEM_OPTIONS)
     acc[item.value] = item.label;
     return acc;
   }, {});
+
+// sabrina{8/17}: event location mapping
+const locationMap = LOCATION_OPTIONS.reduce((acc, option) => {
+  acc[option.name] = option.label;
+  return acc;
+}, {});
 
 // const itemMap = computed(() => {
 //   return Object.values(DROPDOWN).reduce((acc, option) => {
@@ -527,15 +566,30 @@ const rules = reactive({
       trigger: "blur",
     },
   ],
-  item: [{ required: true, message: "請描述物資內容", trigger: "blur" }],
-  quantity: [
-    { required: true, message: "請填寫提供物資份數", trigger: "blur" },
-  ],
-  type: [{ required: true, message: "請選擇物資類型", trigger: "change" }],
   location: [{ required: true, message: "請選擇發放地點", trigger: "change" }],
   date: [{ required: true, message: "請選擇日期", trigger: "change" }],
   time: [{ required: true, message: "請選擇時間", trigger: "change" }],
 });
+
+// sabrina{8/17}: rule for form dynamic set items
+watch(
+  () => form.value.set,
+  (newSets) => {
+    rules.set = {};
+    newSets.forEach((_, index) => {
+      rules[`set.${index}.type`] = [
+        { required: true, message: "請選擇物資類型", trigger: "change" },
+      ];
+      rules[`set.${index}.item`] = [
+        { required: true, message: "請選擇資內容", trigger: "change" },
+      ];
+      rules[`set.${index}.quantity`] = [
+        { required: true, message: "請填寫提供物資份數", trigger: "blur" },
+      ];
+    });
+  },
+  { deep: true }
+);
 
 function toggleDialog(info) {
   // sabrina{7/18}: auto-fill form date when click calendar date
@@ -747,31 +801,41 @@ const handleSubmit = () => {
         medical: "#B9A44C",
       };
 
-      // Get the color based on the type
-      const backgroundColor = typeColorMap[formContent.type];
+      // sabrina{8/17}: handle multiple event item
+      const promises = formContent.set.map((formSet) => {
+        // Get the color based on the type
+        const backgroundColor = typeColorMap[formSet.type];
 
-      addDoc(collection(db, "calEvent"), {
-        start: startTime,
-        backgroundColor: backgroundColor,
-        name: formContent.name,
-        org: formContent.org,
-        phone: formContent.phone,
-        item: formContent.item,
-        quantity: formContent.quantity,
-        type: formContent.type,
-        location: formContent.location,
-      })
-        .then((docRef) => {
+        return addDoc(collection(db, "calEvent"), {
+          start: startTime,
+          backgroundColor: backgroundColor,
+          name: formContent.name,
+          org: formContent.org,
+          phone: formContent.phone,
+          item: formSet.item,
+          quantity: formSet.quantity,
+          type: formSet.type,
+          location: formContent.location,
+        });
+      });
+
+      Promise.all(promises)
+        .then((docRefs) => {
           resetForm();
           // Show success dialog using ElMessageBox
           const successDialogMessage = `
-          <h2>表單細節:<br>
+          <h2><br>
               姓名: ${formContent.name}<br>
-              聯絡電話: ${formContent.org}<br>
-              地點: ${formContent.location}<br>
-              物資類型: ${typeMap[formContent.type] || "unknown"}<br>
-              物資內容: ${itemMap[formContent.item] || "mapping failed"}<br>
-              份數: ${formContent.quantity}<br>
+              聯絡電話: ${formContent.phone}<br>
+              地點: ${locationMap[formContent.location] || "unknown"}<br>
+              物資類型:<br> ${formContent.set
+                .map(
+                  (formSet) =>
+                    ` - ${typeMap[formSet.type] || "unknown"}: ${
+                      itemMap[formSet.item] || "unknown"
+                    }(共${formSet.quantity}份)`
+                )
+                .join("<br>")}<br>
               <br>
               請記下您填寫的聯絡電話，以便於取消登記時使用，再次感謝您填寫表單!</h2> `;
 
@@ -806,12 +870,10 @@ function resetForm() {
     name: "",
     org: "",
     phone: "",
-    item: "",
-    quantity: "",
-    type: "",
     location: "",
     date: "",
     time: "",
+    set: [{ item: "", quantity: "", type: "" }],
   };
 }
 
@@ -883,11 +945,11 @@ const shouldRenderContent = computed(() => {
 
 // sabrina{6/1}: item dropdown
 watch(
-  () => form.value.type,
+  () => form.value.set.type,
   (newValue, oldValue) => {
     if (newValue !== oldValue) {
       // Reset form.item when type changes
-      form.value.item = "";
+      form.value.set.item = "";
     }
   }
 );
