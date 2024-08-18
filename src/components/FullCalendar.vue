@@ -1,5 +1,4 @@
 <template>
-  <!-- <Aside></Aside> -->
   <div class="menu-container">
     <button class="form-button form-button-mobile" @click="toggleDialog()">
       我要發放物資
@@ -362,7 +361,7 @@ const cardVisible = ref(false);
 const selectedTab = ref(store.selectedTab);
 const screenWidth = ref(window.innerWidth);
 const formClick = ref(false);
-const selectedTag = ref("");
+const selectedTag = ref(true);
 const filteredEvents = ref([]);
 
 // sabrina{7/18}: sidebar events
