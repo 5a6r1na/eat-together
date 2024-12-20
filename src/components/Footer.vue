@@ -14,7 +14,7 @@
       <div class="mid-container text-left">
         <h1 class="text-2xl font-bold">街角家</h1>
         <p>HomeStreetHome</p>
-        <p>聯繫我們 | homestreethome2022@gmail.com</p>
+        <p>聯繫我們 | homestreethome@homestreethometc.com</p>
         <p>地址 | 台中市西區自治街65號4樓</p>
         <p>抬頭 | 社團法人台灣街角家關懷協會</p>
         <div class="social-icons">
