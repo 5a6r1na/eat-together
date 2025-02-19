@@ -71,7 +71,7 @@
           </div>
         </div>
         <div>
-          <h2>所有物資 ({{ calendarOptions.events.length }})</h2>
+          <h2>所有物資 ({{ totalGroupedEventsCount }})</h2>
           <div
             v-for="(eventsByType, typeLabel) in groupedEventsByType"
             :key="typeLabel"
@@ -392,6 +392,15 @@ const groupedEventsByType = computed(() => {
   });
 
   return grouped;
+});
+
+const totalGroupedEventsCount = computed(() => {
+  return Object.values(groupedEventsByType.value).reduce(
+    (acc, eventsByType) => {
+      return acc + eventsByType.length;
+    },
+    0
+  );
 });
 
 // sabrina{6/1}: item dropdown
