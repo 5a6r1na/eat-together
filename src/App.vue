@@ -1,12 +1,12 @@
 <template>
   <NavBar></NavBar>
   <Hero></Hero>
+  <FullCalendar></FullCalendar>
+  <Map></Map>
   <div class="introduction-container">
     <Introduction :class="{ open: isOpen }" class="introduction"></Introduction>
     <PlanDetail :class="{ open: isOpen }" class="plandetail"></PlanDetail>
   </div>
-  <FullCalendar></FullCalendar>
-  <Map></Map>
   <Footer></Footer>
 </template>
 

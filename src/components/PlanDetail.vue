@@ -18,18 +18,19 @@
 <style scoped>
 .detail-container {
   /* position: fixed; */
-  height: 300px;
+  height: 350px;
   width: 100%;
   top: 0;
   left: 0;
   z-index: 2;
+  margin-top: 50px;
 }
 
 .detail-background {
   background-image: url("/img/streetpic.jpg");
   background-size: cover;
   background-position: center;
-  padding: 20px;
+  /* padding: 20px; */
   height: 100%;
 }
 
@@ -44,8 +45,8 @@
     0.5
   ); /* Optional: Add a semi-transparent background for better text readability */
   padding: 10px;
-  border-radius: 10px;
-  max-width: 90%; /* Optional: To ensure the text doesn't span the entire width */
+  /* border-radius: 10px; */
+  /* max-width: 90%; */
   margin: auto; /* Center the text container */
   display: flex;
   justify-content: center;
